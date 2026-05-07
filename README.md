@@ -1,345 +1,305 @@
-<![CDATA[<div align="center">
-  <h1>🍏 DiyetGPT — Yapay Zeka Destekli Diyet Asistanı 🤖</h1>
-  <p><strong>Akıllı kalori takibi, AI yemek analizi, tarif önerisi ve kan tahlili yorumlama — hepsi tek platformda.</strong></p>
+<div align="center">
 
-  <br/>
+# 🥗 DiyetGPT — AI-Powered Diet & Calorie Tracker
 
-  ![React](https://img.shields.io/badge/React-18.3-61DAFB?style=for-the-badge&logo=react&logoColor=white)
-  ![Vite](https://img.shields.io/badge/Vite-6.x-646CFF?style=for-the-badge&logo=vite&logoColor=white)
-  ![Node.js](https://img.shields.io/badge/Node.js-22.x-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
-  ![Express](https://img.shields.io/badge/Express-5.x-000000?style=for-the-badge&logo=express&logoColor=white)
-  ![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
-  ![Gemini AI](https://img.shields.io/badge/Gemini_AI-2.5_Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)
-  ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.x-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
-  ![License](https://img.shields.io/badge/Lisans-MIT-green?style=for-the-badge)
+### Yapay Zeka Destekli Diyet ve Kalori Takip Uygulaması
+
+[![React](https://img.shields.io/badge/React-18.2-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.2-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Gemini AI](https://img.shields.io/badge/Google_Gemini-2.5_Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
+[![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+[![Vite](https://img.shields.io/badge/Vite-7-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
+
+<br/>
+
+**DiyetGPT**, Google Gemini 2.5 Flash yapay zeka modelini kullanan, kullanıcıların günlük kalori alımını takip etmesini, yemek fotoğrafı analizi yapmasını, kan testi sonuçlarını değerlendirmesini ve kişiselleştirilmiş diyet önerileri almasını sağlayan full-stack bir web uygulamasıdır.
+
+<br/>
+
+[🚀 Kurulum](#-kurulum) · [✨ Özellikler](#-özellikler) · [📡 API Dökümantasyonu](#-api-endpoint-dökümantasyonu) · [🏗️ Mimari](#️-proje-mimarisi)
 
 </div>
-
----
-
-## 📖 Proje Hakkında
-
-**DiyetGPT**, sağlıklı beslenme ve kalori yönetimini herkes için erişilebilir kılmak amacıyla geliştirilmiş, tam kapsamlı (full-stack) bir web uygulamasıdır.
-
-Kullanıcılar günlük yedikleri yemekleri ve yaptıkları egzersizleri kaydedebilir, su tüketimlerini takip edebilir ve **Google Gemini 2.5 Flash** yapay zeka modeli sayesinde:
-
-- 📸 Yemek fotoğrafı yükleyerek **anında kalori ve makro besin analizi** alabilir,
-- 🧑‍🍳 Elindeki malzemeleri yazarak **AI destekli sağlıklı tarif önerisi** alabilir,
-- 🩸 Kan tahlili sonuçlarını yükleyerek **yapay zeka ile sağlık yorumları** alabilir,
-- 📊 VKİ, BMR, günlük kalori ihtiyacı gibi **sağlık metriklerini canlı olarak** görüntüleyebilir.
-
-Uygulama, modern bir kullanıcı deneyimi sunmak için **Glassmorphism** tasarım dili, **Dark Mode** desteği ve **Framer Motion** animasyonları ile donatılmıştır.
 
 ---
 
 ## ✨ Özellikler
 
-### 🔐 Kimlik Doğrulama ve Kullanıcı Yönetimi
+### 🤖 Yapay Zeka Modülleri
 | Özellik | Açıklama |
-|---|---|
-| **Kayıt Ol** | İsim, e-posta, şifre, yaş, boy, kilo, cinsiyet ve aktivite seviyesi ile detaylı kayıt |
-| **Giriş Yap** | E-posta + şifre ile güvenli oturum açma (bcrypt şifreleme) |
-| **Oturum Yönetimi** | Express-Session ile 24 saatlik güvenli oturum |
-| **Hata Yönetimi** | Yanlış şifre/e-posta durumunda kullanıcı dostu bildirimler (beyaz ekran hatası düzeltildi) |
+|---------|----------|
+| 📸 **Fotoğraf ile Besin Analizi** | Yemek fotoğrafı yükleyin, Gemini Vision kalori, protein, karbonhidrat ve yağ değerlerini otomatik hesaplasın |
+| 💬 **AI Diyet Koçu (Chat)** | DiyetGPT ile sohbet ederek beslenme, spor ve sağlıklı yaşam tavsiyeleri alın |
+| 🧪 **Kan Testi Analizi** | Laboratuvar sonuçlarınızı metin veya fotoğraf olarak yükleyin, referans dışı değerleri ve beslenme önerilerini görün |
+| 🍳 **Akıllı Tarif Üretici** | Elinizde bulunan malzemeleri girin, AI size sağlıklı tarifler önersin (sıkı/esnek mod) |
 
-### 📊 Ana Dashboard (Kontrol Paneli)
-| Özellik | Açıklama |
-|---|---|
-| **Günlük Kalori Özeti** | Alınan kalori, yakılan kalori ve net kalori kartları |
-| **Makro Besin Takibi** | Protein, karbonhidrat ve yağ dağılımı |
-| **Su Tüketimi Takibi** | Bardak bardak su ekleme ve günlük hedef takibi |
-| **Haftalık Grafik** | Recharts ile görselleştirilmiş kalori trendi |
-| **Tarih Gezintisi** | İleri-geri ok tuşlarıyla günler arası geçiş |
+### 📊 Günlük Takip
+- 🍽️ **Kalori & Makro Takibi** — Yemek ekle, sil, günlük kalori/protein/karbonhidrat/yağ takibi yap
+- 🏋️ **Egzersiz Kaydı** — Yapılan egzersizleri ve yakılan kalorileri kaydet
+- 💧 **Su Tüketimi** — Günlük su alımını takip et
+- 📅 **Tarih Bazlı Loglar** — Geçmiş günlere ait tüm verilere ulaş
 
-### 🍽️ Yemek ve Egzersiz Yönetimi
-| Özellik | Açıklama |
-|---|---|
-| **Yemek Arama** | 500+ yiyecek içeren yerleşik Türkçe gıda veritabanı |
-| **Kategoriye Göre Filtreleme** | Et, süt, meyve, sebze, tahıl vb. kategorilerde göz atma |
-| **Yemek Ekleme/Silme** | Porsiyon miktarı ile öğüne yemek ekleme ve kaldırma |
-| **Egzersiz Kaydı** | Hazır egzersiz listesinden seçerek dakika girme ve yakılan kalori hesaplama |
-
-### 🤖 Yapay Zeka (AI) Özellikleri
-| Özellik | Açıklama |
-|---|---|
-| **📸 Fotoğraf Analizi** | Yemeğinizin fotoğrafını çekin veya yükleyin — AI kalori, protein, karbonhidrat ve yağ değerlerini tahmin etsin |
-| **🧑‍🍳 Yemek Önerisi Sihirbazı** | Dolabınızdaki malzemeleri yazın — AI size sağlıklı bir tarif, adım adım yapılış ve gerekli malzeme listesi sunsun |
-| **🩸 Kan Tahlili Analizi** | Kan tahlili sonuçlarınızın fotoğrafını yükleyin — AI değerlerinizi yorumlayarak beslenme tavsiyeleri versin |
-| **💬 DiyetGPT Chat** | Beslenme, diyet ve sağlık hakkında yapay zeka ile sohbet edin |
-
-### 👤 Profil Yönetimi
-| Özellik | Açıklama |
-|---|---|
-| **Kişisel Bilgiler** | İsim, e-posta, yaş, boy, kilo, cinsiyet ve aktivite seviyesi düzenleme |
-| **Canlı Sağlık Metrikleri** | Bilgiler değiştikçe VKİ, BMR, günlük kalori ve su ihtiyacı anlık güncellenir |
-| **Abonelik Durumu** | Profilde mevcut paket kartı ve paketlere hızlı geçiş |
-| **SQLite'a Kalıcı Kayıt** | Tüm profil değişiklikleri veritabanına kaydedilir |
-
-### 💎 Premium Paket Sistemi
-| Paket | Fiyat | Fotoğraf Analizi | Yemek Önerisi | Kan Tahlili |
-|---|---|---|---|---|
-| **Basic** | Ücretsiz | 1/ay | 1/ay | 1/ay |
-| **Normal** | $1/ay | 15/ay | 5/ay | 1/ay |
-| **Premium** | $2/ay | ♾️ Sınırsız | ♾️ Sınırsız | ♾️ Sınırsız |
-
-- Şık ve modern satın alma (checkout) dialog penceresi
-- Backend tarafında güvenli limit kontrolü (`limitChecker` middleware)
-- Aylık otomatik kullanım sıfırlama
-
-### 🎨 Arayüz ve Tasarım
-- **Glassmorphism UI** — Buzlu cam efektli modern kartlar
-- **Dark Mode / Light Mode** — Tek tıkla tema geçişi
-- **Framer Motion Animasyonları** — Sayfa geçişleri ve bileşen animasyonları
-- **Tam Responsive** — Masaüstü, tablet ve mobil uyumlu
-- **Gradient Butonlar** — Zümrüt yeşilinden deniz mavisine canlı degrade renkler
+### 👤 Kullanıcı Yönetimi
+- 🔐 Kayıt & Giriş (bcrypt şifreli)
+- 📝 Profil yönetimi (boy, kilo, yaş, cinsiyet, aktivite seviyesi)
+- 📦 Paket sistemi (Free / Normal / Premium) — kullanım limitleri ve aylık sıfırlama
 
 ---
 
-## 🛠️ Teknoloji Yığını (Tech Stack)
+## 🛠️ Teknoloji Yığını
 
 ### Frontend
-| Teknoloji | Sürüm | Kullanım Amacı |
-|---|---|---|
-| React | 18.3 | UI bileşen mimarisi |
-| Vite | 6.x | Hızlı geliştirme sunucusu ve build aracı |
-| TypeScript | 5.9 | Tip güvenliği |
-| TailwindCSS | 4.x | Utility-first CSS framework |
-| Framer Motion | 12.x | Animasyonlar ve geçiş efektleri |
-| Recharts | 3.x | Kalori grafikleri |
-| Axios | 1.11 | HTTP istemcisi |
-| Lucide React | 0.540 | İkon seti |
-| Radix UI | - | Dialog, Select, Progress vb. headless bileşenler |
-| React Router | - | Sayfa yönlendirme |
-| Sonner | - | Toast bildirimleri |
+| Teknoloji | Kullanım Amacı |
+|-----------|---------------|
+| **React 18** + **TypeScript** | UI bileşenleri ve tip güvenliği |
+| **Vite 7** | Hızlı geliştirme sunucusu ve build |
+| **React Router v6** | Sayfa yönlendirme (SPA) |
+| **Framer Motion** | Animasyonlar ve geçiş efektleri |
+| **Axios** | HTTP istekleri |
+| **Radix UI** | Erişilebilir dialog bileşenleri |
+| **Sonner** | Toast bildirimleri |
+| **TailwindCSS 3** | Utility-first CSS |
 
 ### Backend
-| Teknoloji | Sürüm | Kullanım Amacı |
-|---|---|---|
-| Node.js | 22.x | Sunucu çalışma ortamı |
-| Express.js | 5.x | RESTful API framework |
-| SQLite3 | - | İlişkisel veritabanı |
-| Google Generative AI | 0.24 | Gemini 2.5 Flash — Görüntü analizi & metin üretimi |
-| Bcrypt | - | Şifre hash'leme |
-| Express-Session | - | Oturum yönetimi |
-| Multer | - | Dosya/fotoğraf yükleme |
-| Dotenv | - | Ortam değişkenleri |
-| CORS | - | Cross-Origin kaynak paylaşımı |
-| Nodemon | - | Geliştirme sırasında otomatik yeniden başlatma |
+| Teknoloji | Kullanım Amacı |
+|-----------|---------------|
+| **Node.js** + **Express** | REST API sunucusu |
+| **SQLite3** | Yerel veritabanı (sıfır konfigürasyon) |
+| **Google Generative AI SDK** | Gemini 2.5 Flash entegrasyonu |
+| **Multer** | Dosya yükleme (fotoğraf analizi) |
+| **bcrypt** | Şifre hash'leme |
+| **express-session** | Oturum yönetimi |
+| **JWT** | Token tabanlı kimlik doğrulama |
 
 ---
 
-## 📂 Proje Yapısı
+## 🚀 Kurulum
 
-```
-DiyetGPT/
-├── 📁 backend/                    # Sunucu tarafı
-│   ├── server.js                  # Ana sunucu dosyası (tüm API endpoint'leri)
-│   ├── database.sqlite            # SQLite veritabanı dosyası
-│   ├── .env                       # Ortam değişkenleri (API key, port, secret)
-│   ├── package.json               # Backend bağımlılıkları
-│   ├── nodemon.json               # Nodemon yapılandırması
-│   └── 📁 uploads/               # Yüklenen fotoğraflar (geçici)
-│
-├── 📁 frontend/                   # İstemci tarafı
-│   ├── 📁 src/
-│   │   ├── 📁 pages/
-│   │   │   ├── Dashboard.tsx      # Ana panel (tüm sekmeler: kalori, profil, AI özellikleri)
-│   │   │   ├── Login.tsx          # Giriş sayfası
-│   │   │   ├── Register.tsx       # Kayıt sayfası
-│   │   │   ├── PhotoAnalysis.tsx  # Fotoğraf analizi sayfası
-│   │   │   ├── main.tsx           # Uygulama giriş noktası ve Router
-│   │   │   ├── Index.tsx          # Yönlendirme sayfası
-│   │   │   └── NotFound.tsx       # 404 sayfası
-│   │   └── index.css              # Global stiller
-│   ├── 📁 components/ui/         # Radix UI tabanlı yeniden kullanılabilir bileşenler
-│   ├── 📁 lib/                   # Yardımcı fonksiyonlar (cn utility)
-│   ├── vite.config.ts            # Vite yapılandırması (proxy dahil)
-│   ├── tailwind.config.js        # Tailwind yapılandırması
-│   └── package.json              # Frontend bağımlılıkları
-│
-├── 📁 data/                      # Statik veri dosyaları
-│   ├── foods.ts                  # 500+ Türkçe yiyecek veritabanı (kalori, makro değerler)
-│   ├── diets.ts                  # Popüler diyet programları (Akdeniz, Keto, vb.)
-│   └── mockContent.ts            # Örnek tarifler ve egzersiz verileri
-│
-├── package.json                  # Kök bağımlılıklar (concurrently ile tek komut çalıştırma)
-├── README.md                     # Bu dosya
-└── .gitignore                    # Git'ten hariç tutulan dosyalar
-```
+### Ön Gereksinimler
+- [Node.js](https://nodejs.org/) (v18+)
+- [npm](https://www.npmjs.com/) veya [pnpm](https://pnpm.io/)
+- [Google Gemini API Key](https://aistudio.google.com/apikey)
 
----
+### 1. Repoyu Klonlayın
 
-## 🗄️ Veritabanı Şeması (SQLite)
-
-### 📋 Packages (Abonelik Paketleri)
-| Sütun | Tip | Açıklama |
-|---|---|---|
-| PackageID | INTEGER PK | Paket ID (1, 2, 3) |
-| Name | TEXT | Paket adı (Free, Normal, Premium) |
-| PhotoAnalysisLimit | INTEGER | Aylık fotoğraf analizi limiti (NULL = sınırsız) |
-| MealSuggestionLimit | INTEGER | Aylık yemek önerisi limiti |
-| BloodTestLimit | INTEGER | Aylık kan tahlili limiti |
-
-### 👤 Users (Kullanıcılar)
-| Sütun | Tip | Açıklama |
-|---|---|---|
-| ID | INTEGER PK | Otomatik artan kullanıcı ID |
-| Name | TEXT | Kullanıcı adı |
-| Email | TEXT UNIQUE | E-posta adresi |
-| PasswordHash | TEXT | Bcrypt ile hashlenmiş şifre |
-| Age, Weight, Height | INTEGER/REAL | Fiziksel özellikler |
-| Gender | TEXT | Cinsiyet (male/female) |
-| ActivityLevel | TEXT | Aktivite seviyesi |
-| PackageID | INTEGER | Aktif paket (FK → Packages) |
-| PhotoAnalysisUsed | INTEGER | Bu ay kullanılan fotoğraf analizi sayısı |
-| MealSuggestionUsed | INTEGER | Bu ay kullanılan yemek önerisi sayısı |
-| BloodTestUsed | INTEGER | Bu ay kullanılan kan tahlili sayısı |
-| LastUsageReset | TEXT | Son kullanım sıfırlama tarihi |
-| dailyCalorieGoal | INTEGER | Günlük kalori hedefi |
-
-### 🍕 ConsumedFoods (Tüketilen Gıdalar)
-| Sütun | Tip | Açıklama |
-|---|---|---|
-| ID | INTEGER PK | Kayıt ID |
-| UserID | INTEGER | Kullanıcı ID |
-| Name | TEXT | Yemeğin adı |
-| Calories, Protein, Carbs, Fat | REAL | Besin değerleri |
-| Amount | REAL | Porsiyon miktarı (gram) |
-| MealTime | TEXT | Öğün zamanı |
-| Date | TEXT | Tarih (YYYY-MM-DD) |
-
-### 🏃 BurnedExercises (Yapılan Egzersizler)
-| Sütun | Tip | Açıklama |
-|---|---|---|
-| ID | INTEGER PK | Kayıt ID |
-| UserID | INTEGER | Kullanıcı ID |
-| Name | TEXT | Egzersiz adı |
-| Minutes | INTEGER | Süre (dakika) |
-| TotalCaloriesBurned | INTEGER | Yakılan toplam kalori |
-| Date | TEXT | Tarih |
-
-### 💧 WaterIntake (Su Tüketimi)
-| Sütun | Tip | Açıklama |
-|---|---|---|
-| ID | INTEGER PK | Kayıt ID |
-| UserID | INTEGER | Kullanıcı ID |
-| Amount | INTEGER | Su miktarı (ml) |
-| Date | TEXT | Tarih |
-
----
-
-## 🔌 API Endpoint'leri
-
-### Kimlik Doğrulama
-| Method | Endpoint | Açıklama |
-|---|---|---|
-| `POST` | `/register` | Yeni kullanıcı kaydı |
-| `POST` | `/login` | Giriş yapma |
-| `POST` | `/logout` | Çıkış yapma |
-| `GET` | `/api/user` | Oturumdaki kullanıcı bilgilerini getir |
-
-### Profil
-| Method | Endpoint | Açıklama |
-|---|---|---|
-| `PUT` | `/api/user/profile` | Profil bilgilerini güncelle (SQLite'a kaydet) |
-| `POST` | `/api/subscribe` | Paket yükseltme |
-
-### Günlük Takip
-| Method | Endpoint | Açıklama |
-|---|---|---|
-| `POST` | `/api/add-food` | Yemek kaydı ekle |
-| `DELETE` | `/api/delete-food/:id` | Yemek kaydı sil |
-| `POST` | `/api/add-exercise` | Egzersiz kaydı ekle |
-| `DELETE` | `/api/delete-exercise/:id` | Egzersiz kaydı sil |
-| `POST` | `/api/add-water` | Su tüketimi ekle |
-| `GET` | `/api/daily-logs?date=YYYY-MM-DD` | Günlük tüm kayıtları getir |
-
-### Yapay Zeka (AI)
-| Method | Endpoint | Middleware | Açıklama |
-|---|---|---|---|
-| `POST` | `/api/analyze-image` | `limitChecker('PhotoAnalysis')` | Yemek fotoğrafı analizi |
-| `POST` | `/api/generate-recipe` | `limitChecker('MealSuggestion')` | AI yemek tarifi önerisi |
-| `POST` | `/api/analyze-blood-test` | `limitChecker('BloodTest')` | Kan tahlili yorumlama |
-| `POST` | `/api/diet-gpt` | — | DiyetGPT sohbet |
-
----
-
-## 🚀 Kurulum ve Çalıştırma
-
-### Gereksinimler
-- **Node.js** v16 veya üzeri
-- **npm** (Node.js ile birlikte gelir)
-- **Google Gemini API Anahtarı** → [Google AI Studio](https://aistudio.google.com/apikey) üzerinden ücretsiz alabilirsiniz
-
-### 1. Projeyi Klonlayın
 ```bash
-git clone https://github.com/KULLANICI_ADINIZ/DiyetGPT.git
+git clone https://github.com/ziyaguner/DiyetGPT.git
 cd DiyetGPT
 ```
 
-### 2. Ortam Değişkenlerini Ayarlayın
-`backend/` klasörü içinde bir `.env` dosyası oluşturun:
-```env
-PORT=5000
-SESSION_SECRET=buraya-gizli-bir-anahtar-yazin
-GEMINI_API_KEY=buraya-google-gemini-api-anahtarinizi-yazin
-```
+### 2. Backend Kurulumu
 
-### 3. Bağımlılıkları Yükleyin
 ```bash
-# Kök dizinde (hem frontend hem backend bağımlılıklarını yükler)
+cd backend
 npm install
-
-# Backend bağımlılıkları
-cd backend && npm install && cd ..
-
-# Frontend bağımlılıkları
-cd frontend && npm install && cd ..
 ```
 
-### 4. Projeyi Başlatın
+`.env` dosyası oluşturun:
+
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+SESSION_SECRET=your_secret_key_here
+PORT=5000
+```
+
+### 3. Frontend Kurulumu
+
 ```bash
+cd frontend
+npm install
+```
+
+### 4. Uygulamayı Başlatın
+
+**Backend** (Terminal 1):
+```bash
+cd backend
 npm run dev
 ```
 
-Bu komut `concurrently` paketi sayesinde **frontend ve backend'i aynı anda** başlatır:
-- 🖥️ **Frontend:** http://localhost:5173
-- ⚙️ **Backend:** http://localhost:5000
+**Frontend** (Terminal 2):
+```bash
+cd frontend
+npm run dev
+```
+
+> 🌐 Frontend: `http://localhost:5173` — Backend: `http://localhost:5000`
 
 ---
 
-## 🔒 Güvenlik Notları
+## 📡 API Endpoint Dökümantasyonu
 
-- Şifreler **bcrypt** ile hash'lenerek saklanır, düz metin olarak tutulmaz
-- Oturumlar **express-session** ile yönetilir (24 saat süreli cookie)
-- API anahtarı `.env` dosyasında saklanır, frontend'e **asla** gönderilmez
-- CORS politikası sadece yetkili origin'lere izin verir
-- `.gitignore` dosyası ile hassas dosyalar (`node_modules`, `.env`, `database.sqlite`, `uploads/`) Git'e eklenmez
+### 🔑 Kimlik Doğrulama
+
+| Method | Endpoint | Açıklama |
+|--------|----------|----------|
+| `POST` | `/register` | Yeni kullanıcı kaydı |
+| `POST` | `/login` | Giriş yap |
+| `POST` | `/logout` | Çıkış yap |
+
+### 👤 Kullanıcı
+
+| Method | Endpoint | Açıklama |
+|--------|----------|----------|
+| `GET` | `/api/user` | Oturum bilgilerini getir |
+| `PUT` | `/api/user/profile` | Profil güncelle |
+| `POST` | `/api/subscribe` | Paket değiştir |
+
+### 🍽️ Besin Takibi
+
+| Method | Endpoint | Açıklama |
+|--------|----------|----------|
+| `POST` | `/api/add-food` | Yemek ekle |
+| `DELETE` | `/api/delete-food/:id` | Yemek sil |
+| `POST` | `/api/add-exercise` | Egzersiz ekle |
+| `DELETE` | `/api/delete-exercise/:id` | Egzersiz sil |
+| `POST` | `/api/add-water` | Su kaydı ekle |
+| `GET` | `/api/daily-logs?date=YYYY-MM-DD` | Günlük logları getir |
+
+### 🤖 Yapay Zeka
+
+| Method | Endpoint | Açıklama |
+|--------|----------|----------|
+| `POST` | `/api/analyze-image` | Yemek fotoğrafı analizi (multipart) |
+| `POST` | `/api/analyze-blood-test` | Kan testi analizi |
+| `POST` | `/api/chat` | AI diyet koçu ile sohbet |
+| `POST` | `/api/generate-recipe` | AI tarif üretici |
+
+---
+
+## 🏗️ Proje Mimarisi
+
+```
+DiyetGPT/
+├── frontend/                   # React + TypeScript (Vite)
+│   ├── src/
+│   │   ├── pages/
+│   │   │   ├── main.tsx        # Uygulama giriş noktası & routing
+│   │   │   ├── Dashboard.tsx   # Ana panel (kalori takip, grafikler)
+│   │   │   ├── Login.tsx       # Giriş sayfası
+│   │   │   ├── Register.tsx    # Kayıt sayfası
+│   │   │   └── PhotoAnalysis.tsx  # Fotoğraf analiz sayfası
+│   │   └── index.css
+│   ├── components/             # Yeniden kullanılabilir UI bileşenleri
+│   ├── lib/                    # Yardımcı fonksiyonlar
+│   └── vite.config.ts
+│
+├── backend/                    # Node.js + Express API
+│   ├── server.js               # Tüm API endpointleri & iş mantığı
+│   ├── database.sqlite         # SQLite veritabanı (otomatik oluşturulur)
+│   ├── uploads/                # Geçici fotoğraf yüklemeleri
+│   └── .env                    # Ortam değişkenleri (API anahtarları)
+│
+└── .gitignore
+```
+
+### Veritabanı Şeması
+
+```mermaid
+erDiagram
+    Users ||--o{ ConsumedFoods : "tracks"
+    Users ||--o{ BurnedExercises : "logs"
+    Users ||--o{ WaterIntake : "records"
+    Users }o--|| Packages : "subscribes"
+
+    Users {
+        int ID PK
+        text Name
+        text Email UK
+        text PasswordHash
+        int Age
+        real Weight
+        real Height
+        text Gender
+        text ActivityLevel
+        int PackageID FK
+        int PhotoAnalysisUsed
+        int MealSuggestionUsed
+        int BloodTestUsed
+    }
+
+    Packages {
+        int PackageID PK
+        text Name
+        int PhotoAnalysisLimit
+        int MealSuggestionLimit
+        int BloodTestLimit
+    }
+
+    ConsumedFoods {
+        int ID PK
+        int UserID FK
+        text Name
+        real Calories
+        real Protein
+        real Carbs
+        real Fat
+        text MealTime
+        text Date
+    }
+
+    BurnedExercises {
+        int ID PK
+        int UserID FK
+        text Name
+        int Minutes
+        int TotalCaloriesBurned
+        text Date
+    }
+
+    WaterIntake {
+        int ID PK
+        int UserID FK
+        int Amount
+        text Date
+    }
+```
+
+---
+
+## 📦 Paket Sistemi
+
+| Paket | Fotoğraf Analizi | Tarif Önerisi | Kan Testi | Fiyat |
+|-------|:----------------:|:-------------:|:---------:|:-----:|
+| 🆓 **Free** | 5 / ay | 5 / ay | 1 / ay | Ücretsiz |
+| ⭐ **Normal** | 20 / ay | 20 / ay | 5 / ay | — |
+| 💎 **Premium** | ♾️ Sınırsız | ♾️ Sınırsız | ♾️ Sınırsız | — |
+
+> Kullanım limitleri her ay otomatik olarak sıfırlanır.
+
+---
+
+## 🔒 Güvenlik
+
+- Şifreler **bcrypt** ile hash'lenerek saklanır
+- Oturum yönetimi **express-session** ile sağlanır
+- API anahtarları `.env` dosyasında tutulur (`.gitignore`'da)
+- Veritabanı dosyaları ve kullanıcı yüklemeleri Git'e dahil edilmez
+- CORS politikası yalnızca izin verilen origin'lere açıktır
 
 ---
 
 ## 🤝 Katkıda Bulunma
 
-Bu proje geliştirilmeye açıktır! Katkıda bulunmak için:
-
 1. Bu repoyu **fork** edin
 2. Yeni bir **branch** oluşturun (`git checkout -b feature/yeni-ozellik`)
-3. Değişikliklerinizi **commit** edin (`git commit -m 'Yeni özellik eklendi'`)
+3. Değişikliklerinizi **commit** edin (`git commit -m 'feat: yeni özellik eklendi'`)
 4. Branch'inizi **push** edin (`git push origin feature/yeni-ozellik`)
 5. Bir **Pull Request** açın
-
-Karşılaştığınız hataları **Issues** sekmesinden bildirebilirsiniz.
 
 ---
 
 ## 📄 Lisans
 
-Bu proje [MIT Lisansı](LICENSE) altında lisanslanmıştır.
+Bu proje [MIT Lisansı](LICENSE) ile lisanslanmıştır.
 
 ---
 
 <div align="center">
-  <p>⭐ Bu projeyi beğendiyseniz yıldız vermeyi unutmayın!</p>
-  <p>Made with ❤️ and 🤖 AI</p>
+
+**⭐ Bu projeyi beğendiyseniz yıldız vermeyi unutmayın!**
+
+Made with ❤️ and 🤖 AI
+
 </div>
-]]>
