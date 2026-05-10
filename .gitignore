@@ -22,6 +22,9 @@ dist-ssr
 backend/.env
 *.txt
 
+# Screenshots klasörü Git'e dahil edilecek (README için)
+!screenshots/
+
 # Database (her kullanıcı kendi DB'sini oluşturur)
 *.sqlite
 database.sqlite

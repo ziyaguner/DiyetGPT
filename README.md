@@ -27,36 +27,125 @@
   sunan modern bir full-stack sağlık uygulamasıdır.
 </p>
 
-<br/>
-
-[![Kurulum](#-kurulum)](https://github.com/ziyaguner/DiyetGPT#-kurulum) &nbsp;·&nbsp;
-[![Özellikler](#-özellikler)](https://github.com/ziyaguner/DiyetGPT#-özellikler) &nbsp;·&nbsp;
-[![API Docs](#-api-referansı)](https://github.com/ziyaguner/DiyetGPT#-api-referansı) &nbsp;·&nbsp;
-[![Mimari](#️-proje-mimarisi)](https://github.com/ziyaguner/DiyetGPT#️-proje-mimarisi)
-
 </div>
 
 ---
 
 ## 📸 Ekran Görüntüleri
 
+### 🔐 Giriş & Kayıt
+
 <div align="center">
+<img src="screenshots/01_login.png" width="80%" alt="Giriş Ekranı"/>
+</div>
 
-| Dashboard | Fotoğraf Analizi | AI Diyet Koçu |
-|:---------:|:---------------:|:-------------:|
-| ![Dashboard](https://placehold.co/380x220/0f172a/4ade80?text=📊+Dashboard&font=roboto) | ![Photo Analysis](https://placehold.co/380x220/0f172a/60a5fa?text=📸+Fotoğraf+Analizi&font=roboto) | ![AI Chat](https://placehold.co/380x220/0f172a/a78bfa?text=🤖+AI+Diyet+Koçu&font=roboto) |
+<br/>
 
+### 📊 Ana Panel (Dashboard)
+
+<div align="center">
+<img src="screenshots/02_dashboard.png" width="80%" alt="Dashboard"/>
+</div>
+
+<br/>
+
+### 🍽️ Yiyecekler & Kalori Takibi
+
+<div align="center">
+<img src="screenshots/03_yiyecekler.png" width="80%" alt="Yiyecekler"/>
+</div>
+
+<br/>
+
+### 📷 Fotoğraf ile Besin Analizi
+
+<div align="center">
+<img src="screenshots/04_photo_analysis.png" width="80%" alt="Fotoğraf Analizi"/>
+</div>
+
+<br/>
+
+### 🍳 Akıllı Tarif Üretici
+
+<div align="center">
+<img src="screenshots/05_recipes.png" width="80%" alt="Tarifler"/>
+</div>
+
+<br/>
+
+### 🥗 Diyet Programları
+
+<div align="center">
+<img src="screenshots/06_diet_plans.png" width="80%" alt="Diyet Programları"/>
+</div>
+
+<br/>
+
+### 🧪 Kan Testi Analizi
+
+<div align="center">
+<img src="screenshots/07_blood_test.png" width="80%" alt="Kan Testi"/>
+</div>
+
+<br/>
+
+### 💡 Yemek Öner
+
+<div align="center">
+<img src="screenshots/08_meal_recommendation.png" width="80%" alt="Yemek Öner"/>
+</div>
+
+<br/>
+
+### 🏋️ Egzersizler
+
+<div align="center">
+<img src="screenshots/09_exercises.png" width="80%" alt="Egzersizler"/>
+</div>
+
+<br/>
+
+### 🤖 DiyetGPT — AI Diyet Koçu
+
+<div align="center">
+<img src="screenshots/10_ai_chat.png" width="80%" alt="AI Chat"/>
+</div>
+
+<br/>
+
+### 💎 Premium Paketler
+
+<div align="center">
+<img src="screenshots/11_premium.png" width="80%" alt="Premium Paketler"/>
+</div>
+
+<br/>
+
+### 💡 Sağlık İpuçları
+
+<div align="center">
+<img src="screenshots/12_tips.png" width="80%" alt="İpuçları"/>
+</div>
+
+<br/>
+
+### 👤 Profil
+
+<div align="center">
+<img src="screenshots/13_profile.png" width="80%" alt="Profil"/>
+</div>
+
+<br/>
+
+### ⚙️ Ayarlar
+
+<div align="center">
+<img src="screenshots/14_settings.png" width="80%" alt="Ayarlar"/>
 </div>
 
 ---
 
 ## ✨ Özellikler
-
-<div align="center">
-
-### 🤖 Yapay Zeka Modülleri
-
-</div>
 
 <table>
 <tr>
@@ -100,14 +189,6 @@ Elinizdeki malzemeleri girin, AI size özel tarifler sunsun:
 </td>
 </tr>
 </table>
-
-<br/>
-
-<div align="center">
-
-### 📊 Günlük Takip & Yönetim
-
-</div>
 
 | 🍽️ Kalori & Makro | 🏋️ Egzersiz | 💧 Su Tüketimi | 📅 Geçmiş Loglar |
 |:-----------------:|:-----------:|:--------------:|:----------------:|
@@ -173,14 +254,8 @@ Elinizdeki malzemeleri girin, AI size özel tarifler sunsun:
 
 ### Ön Gereksinimler
 
-> [!IMPORTANT]
-> Devam etmeden önce aşağıdakilerin sisteminizde kurulu olduğundan emin olun.
-
 - ![Node.js](https://img.shields.io/badge/Node.js-v18%2B-339933?style=flat-square&logo=nodedotjs) — [İndir](https://nodejs.org/)
-- ![npm](https://img.shields.io/badge/npm-veya_pnpm-CB3837?style=flat-square&logo=npm) — Node.js ile birlikte gelir
 - 🔑 **Google Gemini API Key** — [Ücretsiz Al](https://aistudio.google.com/apikey)
-
----
 
 ### ⚡ Hızlı Başlangıç
 
@@ -211,8 +286,7 @@ SESSION_SECRET=super_secret_random_string_here
 PORT=5000
 ```
 
-> [!TIP]
-> `SESSION_SECRET` için rastgele güçlü bir string kullanın. Terminalde `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` ile üretebilirsiniz.
+> **İpucu:** `SESSION_SECRET` için: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
 
 **3️⃣ Frontend kurulumu**
 
@@ -318,6 +392,7 @@ DiyetGPT/
 │   ├── 📁 uploads/                 # Geçici fotoğraf yüklemeleri
 │   └── .env                       # 🔒 API anahtarları (git'e dahil değil)
 │
+├── 📁 screenshots/                 # Uygulama ekran görüntüleri
 └── .gitignore
 ```
 
@@ -403,20 +478,17 @@ erDiagram
 
 ## 🔒 Güvenlik
 
-> [!WARNING]
-> `.env` dosyanızı asla Git'e dahil etmeyin. API anahtarlarınızı kamuya açık ortamlarda paylaşmayın.
-
 - 🔐 Şifreler **bcrypt** (salt rounds: 10) ile hash'lenerek saklanır
 - 🎫 Oturum yönetimi **express-session** ile sağlanır
 - 🗝️ API anahtarları `.env` dosyasında (`.gitignore`'da kayıtlı)
 - 🚫 Veritabanı dosyası ve kullanıcı yüklemeleri Git'e dahil edilmez
 - 🌐 CORS yalnızca izin verilen origin'lere açıktır
 
+> ⚠️ **Uyarı:** `.env` dosyanızı asla Git'e dahil etmeyin!
+
 ---
 
 ## 🤝 Katkıda Bulunma
-
-Katkılarınızı bekliyoruz! 🎉
 
 ```bash
 # 1. Fork edin
@@ -448,9 +520,6 @@ Bu proje **MIT Lisansı** ile lisanslanmıştır — detaylar için [LICENSE](LI
 
 [![GitHub stars](https://img.shields.io/github/stars/ziyaguner/DiyetGPT?style=social)](https://github.com/ziyaguner/DiyetGPT/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/ziyaguner/DiyetGPT?style=social)](https://github.com/ziyaguner/DiyetGPT/network/members)
-[![GitHub watchers](https://img.shields.io/github/watchers/ziyaguner/DiyetGPT?style=social)](https://github.com/ziyaguner/DiyetGPT/watchers)
-
-<br/>
 
 Made with ❤️ and 🤖 **Google Gemini AI**
 
