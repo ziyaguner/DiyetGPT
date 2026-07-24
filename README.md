@@ -14,7 +14,8 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.2-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![Google Gemini](https://img.shields.io/badge/Google_Gemini-2.5_Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
-[![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![İyzico](https://img.shields.io/badge/%C4%B0yzico-3D_Secure-0099D8?style=for-the-badge&logo=iyzico&logoColor=white)](https://www.iyzico.com/)
 [![Vite](https://img.shields.io/badge/Vite-7-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-3-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/License-MIT-F59E0B?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
@@ -22,8 +23,8 @@
 <br/>
 
 <p align="center">
-  <b>DiyetGPT</b>, Google Gemini 2.5 Flash yapay zeka modelini kullanan, <br/>
-  yemek fotoğrafı analizi · kan testi değerlendirmesi · AI diyet koçu · akıllı tarif önerileri <br/>
+  <b>DiyetGPT</b>, Google Gemini 2.5 Flash yapay zeka modelini, MongoDB NoSQL veritabanını ve İyzico 3D Secure ödeme altyapısını kullanan <br/>
+  yemek fotoğrafı analizi · kan testi değerlendirmesi · AI diyet koçu · akıllı tarif önerileri · abonelik & ödeme <br/>
   sunan modern bir full-stack sağlık uygulamasıdır.
 </p>
 
@@ -207,8 +208,8 @@ Elinizdeki malzemeleri girin, AI size özel tarifler sunsun:
 │   React Router v6  ·  Framer Motion  ·  Axios  ·  Radix UI     │
 ├─────────────────────────────────────────────────────────────────┤
 │                          BACKEND                                │
-│   Node.js + Express  ·  SQLite3  ·  Multer  ·  bcrypt          │
-│   express-session  ·  JWT  ·  nodemon                           │
+│   Node.js + Express  ·  MongoDB (Mongoose)  ·  İyzico SDK       │
+│   Multer  ·  bcrypt  ·  express-session                         │
 ├─────────────────────────────────────────────────────────────────┤
 │                        AI / CLOUD                               │
 │        Google Gemini 2.5 Flash  ·  Gemini Vision API           │
@@ -228,7 +229,7 @@ Elinizdeki malzemeleri girin, AI size özel tarifler sunsun:
 | `typescript` | 5.2 | Tip güvenliği |
 | `vite` | 7.x | Build aracı |
 | `react-router-dom` | v6 | Client-side routing |
-| `framer-motion` | latest | Animasyonlar |
+| `framer-motion` | latest | Animasyonlar & Akıcı Geçişler |
 | `axios` | latest | HTTP istemcisi |
 | `@radix-ui/react-dialog` | latest | Modal bileşenleri |
 | `sonner` | latest | Toast bildirimleri |
@@ -238,13 +239,12 @@ Elinizdeki malzemeleri girin, AI size özel tarifler sunsun:
 | Paket | Versiyon | Kullanım |
 |-------|---------|---------|
 | `express` | latest | HTTP sunucusu |
-| `sqlite3` | latest | Veritabanı |
+| `mongoose` | ^8.4.4 | MongoDB ORM & Veritabanı Modelleri |
+| `iyzipay` | ^2.0.61 | İyzico 3D Secure Kredi Kartı Ödeme SDK |
 | `@google/generative-ai` | latest | Gemini API SDK |
 | `multer` | latest | Dosya yükleme |
-| `bcrypt` | latest | Şifre hash |
+| `bcrypt` | latest | Şifre hashleme |
 | `express-session` | latest | Oturum yönetimi |
-| `jsonwebtoken` | latest | JWT token |
-| `nodemon` | latest | Auto-restart |
 
 </details>
 
@@ -279,8 +279,16 @@ npm install
 # Google Gemini API Anahtarı (zorunlu)
 GEMINI_API_KEY=your_gemini_api_key_here
 
+# MongoDB Bağlantı Adresi
+MONGO_URI=mongodb://127.0.0.1:27017/diyetgpt
+
 # Oturum şifreleme anahtarı
 SESSION_SECRET=super_secret_random_string_here
+
+# İyzico Kredi Kartı Ödeme Entegrasyonu
+IYZICO_API_KEY=sandbox-xxxxx
+IYZICO_SECRET_KEY=sandbox-xxxxx
+IYZICO_BASE_URL=https://sandbox-api.iyzipay.com
 
 # Sunucu portu
 PORT=5000
@@ -298,7 +306,7 @@ npm install
 **4️⃣ Uygulamayı başlatın**
 
 ```bash
-# Terminal 1 — Backend
+# Terminal 1 — Backend (MongoDB servisi aktif olmalıdır)
 cd backend && npm run dev
 
 # Terminal 2 — Frontend
@@ -323,20 +331,22 @@ cd frontend && npm run dev
 
 | Method | Endpoint | Açıklama | Body |
 |--------|----------|----------|------|
-| `POST` | `/register` | Yeni kullanıcı kaydı | `{ name, email, password }` |
+| `POST` | `/register` | Yeni kullanıcı kaydı | `{ name, email, password, age, weight, height, gender, activityLevel }` |
 | `POST` | `/login` | Giriş yap | `{ email, password }` |
 | `POST` | `/logout` | Oturumu kapat | — |
 
 </details>
 
 <details>
-<summary><b>👤 Kullanıcı Profili</b></summary>
+<summary><b>👤 Kullanıcı Profili & Ödeme</b></summary>
 
 | Method | Endpoint | Açıklama |
 |--------|----------|----------|
 | `GET` | `/api/user` | Oturum & profil bilgileri |
 | `PUT` | `/api/user/profile` | Profil güncelle (boy, kilo, yaş...) |
 | `POST` | `/api/subscribe` | Paket değiştir |
+| `POST` | `/api/payment/checkout-form` | İyzico 3D Secure ödeme formu oluştur |
+| `POST` | `/api/payment/callback` | İyzico ödeme dönüş kontrolü |
 
 </details>
 
@@ -380,15 +390,17 @@ DiyetGPT/
 │   │   │   ├── Dashboard.tsx       # Ana panel
 │   │   │   ├── Login.tsx           # Giriş sayfası
 │   │   │   ├── Register.tsx        # Kayıt sayfası
-│   │   │   └── PhotoAnalysis.tsx   # Fotoğraf analiz sayfası
+│   │   │   ├── Checkout.tsx        # İyzico Ödeme Ekranı
+│   │   │   ├── PaymentSuccess.tsx  # Ödeme Başarılı Sayfası
+│   │   │   └── PaymentFail.tsx     # Ödeme Başarısız Sayfası
 │   │   ├── 📁 components/          # Yeniden kullanılabilir bileşenler
-│   │   ├── 📁 lib/                 # Yardımcı fonksiyonlar
 │   │   └── index.css
 │   └── vite.config.ts
 │
-├── 📁 backend/                     # Node.js + Express REST API
+├── 📁 backend/                     # Node.js + Express REST API (MongoDB)
 │   ├── server.js                   # Tüm endpointler & iş mantığı
-│   ├── database.sqlite             # SQLite DB (otomatik oluşur)
+│   ├── mongodb.js                  # Mongoose MongoDB Bağlantısı & Modeller
+│   ├── iyzico.js                   # İyzico Ödeme Yapılandırması
 │   ├── 📁 uploads/                 # Geçici fotoğraf yüklemeleri
 │   └── .env                       # 🔒 API anahtarları (git'e dahil değil)
 │
@@ -396,65 +408,66 @@ DiyetGPT/
 └── .gitignore
 ```
 
-### 🗄️ Veritabanı Şeması
+### 🗄️ Veritabanı Şeması (MongoDB Mongoose)
 
 ```mermaid
 erDiagram
-    Users ||--o{ ConsumedFoods : "yemek ekler"
-    Users ||--o{ BurnedExercises : "egzersiz kaydeder"
-    Users ||--o{ WaterIntake : "su takip eder"
-    Users }o--|| Packages : "pakete sahip"
+    User ||--o{ ConsumedFood : "yemek ekler"
+    User ||--o{ BurnedExercise : "egzersiz kaydeder"
+    User ||--o{ WaterIntake : "su takip eder"
+    User }o--|| Package : "pakete sahip"
 
-    Users {
-        int ID PK
-        text Name
-        text Email UK
-        text PasswordHash
-        int Age
-        real Weight
-        real Height
-        text Gender
-        text ActivityLevel
-        int PackageID FK
-        int PhotoAnalysisUsed
-        int MealSuggestionUsed
-        int BloodTestUsed
+    User {
+        ObjectId _id PK
+        string name
+        string email UK
+        string passwordHash
+        number age
+        number weight
+        number height
+        string gender
+        string activityLevel
+        number packageId FK
+        number photoAnalysisUsed
+        number mealSuggestionUsed
+        number bloodTestUsed
     }
 
-    Packages {
-        int PackageID PK
-        text Name
-        int PhotoAnalysisLimit
-        int MealSuggestionLimit
-        int BloodTestLimit
+    Package {
+        ObjectId _id PK
+        number packageId UK
+        string name
+        number photoAnalysisLimit
+        number mealSuggestionLimit
+        number bloodTestLimit
     }
 
-    ConsumedFoods {
-        int ID PK
-        int UserID FK
-        text Name
-        real Calories
-        real Protein
-        real Carbs
-        real Fat
-        text MealTime
-        text Date
+    ConsumedFood {
+        ObjectId _id PK
+        string userId FK
+        string name
+        number calories
+        number protein
+        number carbs
+        number fat
+        string mealTime
+        string date
     }
 
-    BurnedExercises {
-        int ID PK
-        int UserID FK
-        text Name
-        int Minutes
-        int TotalCaloriesBurned
-        text Date
+    BurnedExercise {
+        ObjectId _id PK
+        string userId FK
+        string name
+        number minutes
+        number totalCaloriesBurned
+        string date
     }
 
     WaterIntake {
-        int ID PK
-        int UserID FK
-        int Amount
-        text Date
+        ObjectId _id PK
+        string userId FK
+        number amount
+        string date
     }
 ```
 
