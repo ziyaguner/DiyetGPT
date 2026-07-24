@@ -1,11 +1,11 @@
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=200&section=header&text=DiyetGPT&fontSize=80&fontColor=fff&animation=twinkling&fontAlignY=35&desc=AI-Powered%20Diet%20%26%20Calorie%20Tracker&descAlignY=60&descSize=20" width="100%"/>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=10,20,30&height=200&section=header&text=DiyetGPT&fontSize=80&fontColor=fff&animation=twinkling&fontAlignY=35&desc=AI-Powered%20Diet%20%26%20Calorie%20Tracker&descAlignY=60&descSize=20" width="100%"/>
 
 <br/>
 
 <a href="https://github.com/ziyaguner/DiyetGPT">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1000&color=4ADE80&center=true&vCenter=true&random=false&width=600&lines=Fotoğrafla+Kalori+Analizi+📸;Yapay+Zeka+Diyet+Koçu+🤖;Kan+Testi+Değerlendirmesi+🧪;Akıllı+Tarif+Önerileri+🍳;Günlük+Makro+%26+Su+Takibi+💧" alt="Typing SVG" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1000&color=4ADE80&center=true&vCenter=true&width=600&lines=Foto%C4%9Frafla+Kalori+Analizi+%F0%9F%93%B8;Yapay+Zeka+Diyet+Ko%C3%A7u+%F0%9F%A4%96;Kan+Testi+De%C4%9Ferdirmesi+%F0%9F%A7%AA;Ak%C4%B1ll%C4%B1+Tarif+%C3%96nerileri+%F0%9F%8D%B3;G%C3%BCnl%C3%BCk+Makro+%26+Su+Takibi+%F0%9F%92%A7" alt="Typing SVG" />
 </a>
 
 <br/><br/>

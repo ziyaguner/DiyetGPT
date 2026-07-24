@@ -9,6 +9,10 @@ import '../index.css';
 import PhotoAnalysis from "../pages/PhotoAnalysis";
 import axios from 'axios';
 
+import Checkout from './Checkout.tsx';
+import PaymentSuccess from './PaymentSuccess.tsx';
+import PaymentFail from './PaymentFail.tsx';
+
 // Axios global config
 
 axios.defaults.baseURL = 'http://localhost:5000';
@@ -56,6 +60,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/register" element={<Register />} />
         <Route path="/photo-analysis" element={<PhotoAnalysis />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/payment-fail" element={<PaymentFail />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

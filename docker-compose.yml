@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: diyetgpt-app
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - sqlite_data:/app/backend/data
+    restart: always
+
+volumes:
+  sqlite_data:

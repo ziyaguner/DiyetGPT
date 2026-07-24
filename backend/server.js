@@ -1,7 +1,5 @@
-// server.js (backend)
+// server.js (backend - Pure MongoDB)
 import express from 'express';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
 import bcrypt from 'bcrypt';
 import path from 'path';
 import session from 'express-session';
@@ -11,7 +9,10 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import fs from "fs";
 import multer from "multer";
+import crypto from "crypto";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import iyzipay from "./iyzico.js";
+import { connectToMongoDB, User, Package, ConsumedFood, BurnedExercise, WaterIntake } from './mongodb.js';
 dotenv.config();
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const chatModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); 
@@ -38,6 +39,9 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true })); // extended: true yapın
 
+// Statik Dosyaları Sunma (Frontend React Build'i için)
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
 // Oturum (Session) ayarları
 app.use(session({
     secret: process.env.SESSION_SECRET || 'cok-gizli-bir-anahtar',
@@ -49,7 +53,7 @@ app.use(session({
       maxAge: 24 * 60 * 60 * 1000 // 24 saat
     }
 }));
-// Özellik Kullanım Kontrol ve Artırma Middleware/Fonksiyonu
+// Özellik Kullanım Kontrol ve Artırma Middleware/Fonksiyonu (MongoDB)
 const limitChecker = (featureName, fieldName) => {
     return async (req, res, next) => {
         if (!req.session.ID) {
@@ -59,7 +63,7 @@ const limitChecker = (featureName, fieldName) => {
         
         try {
             // Kullanım bilgilerini çek ve gerekirse sıfırla
-            const userState = await getAndResetUsage(ID, db);
+            const userState = await getAndResetUsage(ID);
             
             if (!userState) {
                  return res.status(404).json({ error: 'Kullanıcı bulunamadı.' });
@@ -73,8 +77,8 @@ const limitChecker = (featureName, fieldName) => {
                 return next();
             }
 
-            // Limit kontrolü (limit NULL değilse ve kullanılan limit aşıyorsa)
-            if (limitInfo.limit !== null && limitInfo.used >= limitInfo.limit) {
+            // Limit kontrolü
+            if (limitInfo && limitInfo.limit !== null && limitInfo.used >= limitInfo.limit) {
                 return res.status(403).json({ 
                     error: `${featureName} kullanım limitinizi aştınız. Lütfen paketinizi yükseltin.`,
                     limitExceeded: true,
@@ -85,8 +89,10 @@ const limitChecker = (featureName, fieldName) => {
                 });
             }
 
-            // Limit aşılmadıysa, kullanımı 1 artır
-            await db.run(`UPDATE Users SET ${fieldName} = ${fieldName} + 1 WHERE ID = ?`, [ID]);
+            // Limit aşılmadıysa, kullanımı 1 artır (MongoDB)
+            const updateField = fieldName === 'PhotoAnalysisUsed' ? 'photoAnalysisUsed' : 
+                                fieldName === 'MealSuggestionUsed' ? 'mealSuggestionUsed' : 'bloodTestUsed';
+            await User.findByIdAndUpdate(ID, { $inc: { [updateField]: 1 } });
 
             next();
 
@@ -94,7 +100,6 @@ const limitChecker = (featureName, fieldName) => {
             console.error(`Limit kontrolü hatası (${featureName}):`, error);
             res.status(500).json({ error: 'Sunucu hatası, limit kontrolü yapılamadı.' });
         } 
-        
     };
 };
 // Fotoğraf analizi endpoint'i
@@ -208,142 +213,11 @@ app.post('/api/analyze-blood-test', limitChecker('BloodTest', 'BloodTestUsed'), 
   }
 });
 
-let db;
-
-async function connectToDatabase() {
-    try {
-        const dbPath = path.join(__dirname, 'database.sqlite');
-        db = await open({
-            filename: dbPath,
-            driver: sqlite3.Database
-        });
-        console.log(`SQLite veritabanına bağlandı! Dosya yolu: ${dbPath}`);
-        
-        // Tabloları kontrol et ve yoksa oluştur
-        await ensureTableExists();
-    } catch (err) {
-        console.error('Veritabanı bağlantısı başarısız:', err);
-    }
-}
-
-async function ensureTableExists() {
-    try {
-        console.log('Veritabanı şeması kontrol ediliyor...');
-
-        // 1. Packages Tablosu
-        await db.run(`
-            CREATE TABLE IF NOT EXISTS Packages (
-                PackageID INTEGER PRIMARY KEY,
-                Name TEXT NOT NULL,
-                PhotoAnalysisLimit INTEGER,
-                MealSuggestionLimit INTEGER,
-                BloodTestLimit INTEGER
-            )
-        `);
-
-        // Varsayılan paketleri ekle (yoksa)
-        const packagesCount = await db.get('SELECT COUNT(*) as count FROM Packages');
-        if (packagesCount.count === 0) {
-            await db.run(`
-                INSERT INTO Packages (PackageID, Name, PhotoAnalysisLimit, MealSuggestionLimit, BloodTestLimit) VALUES
-                (1, 'Free', 5, 5, 1),
-                (2, 'Normal', 20, 20, 5),
-                (3, 'Premium', NULL, NULL, NULL)
-            `);
-            console.log('Varsayılan paketler eklendi.');
-        }
-
-        // 2. Users Tablosu
-        await db.run(`
-            CREATE TABLE IF NOT EXISTS Users (
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                Name TEXT NOT NULL,
-                Email TEXT UNIQUE NOT NULL,
-                PasswordHash TEXT NOT NULL,
-                Age INTEGER,
-                Weight REAL,
-                Height REAL,
-                Gender TEXT,
-                ActivityLevel TEXT,
-                SubscriptionStatus TEXT NOT NULL DEFAULT 'free',
-                SubscriptionEndDate TEXT,
-                PackageID INTEGER DEFAULT 1,
-                PhotoAnalysisUsed INTEGER DEFAULT 0,
-                MealSuggestionUsed INTEGER DEFAULT 0,
-                BloodTestUsed INTEGER DEFAULT 0,
-                LastUsageReset TEXT DEFAULT CURRENT_TIMESTAMP,
-                dailyCalorieGoal INTEGER,
-                weightUnit TEXT DEFAULT 'kg',
-                heightUnit TEXT DEFAULT 'cm',
-                CreatedAt TEXT DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
-
-        // 3. ConsumedFoods Tablosu
-        await db.run(`
-            CREATE TABLE IF NOT EXISTS ConsumedFoods (
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                UserID INTEGER NOT NULL,
-                FoodID TEXT,
-                Name TEXT NOT NULL,
-                Calories REAL NOT NULL,
-                Protein REAL,
-                Carbs REAL,
-                Fat REAL,
-                Amount REAL,
-                MealTime TEXT,
-                Date TEXT NOT NULL,
-                CreatedAt TEXT DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
-
-        // 4. BurnedExercises Tablosu
-        await db.run(`
-            CREATE TABLE IF NOT EXISTS BurnedExercises (
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                UserID INTEGER NOT NULL,
-                ExerciseID TEXT,
-                Name TEXT NOT NULL,
-                Minutes INTEGER NOT NULL,
-                TotalCaloriesBurned INTEGER NOT NULL,
-                Date TEXT NOT NULL,
-                CreatedAt TEXT DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
-
-        // 5. WaterIntake Tablosu
-        await db.run(`
-            CREATE TABLE IF NOT EXISTS WaterIntake (
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                UserID INTEGER NOT NULL,
-                Amount INTEGER NOT NULL,
-                Date TEXT NOT NULL,
-                CreatedAt TEXT DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
-
-        // Veritabanı doluluk kontrolü logu
-        const foodCount = await db.get('SELECT COUNT(*) as count FROM ConsumedFoods');
-        const waterCount = await db.get('SELECT COUNT(*) as count FROM WaterIntake');
-        const userCount = await db.get('SELECT COUNT(*) as count FROM Users');
-        
-        console.log('--- Veritabanı Durum Özeti ---');
-        console.log(`Kayıtlı Kullanıcı: ${userCount.count}`);
-        console.log(`Toplam Yemek Kaydı: ${foodCount.count}`);
-        console.log(`Toplam Su Kaydı: ${waterCount.count}`);
-        console.log('------------------------------');
-
-        console.log('Veritabanı şeması başarıyla güncellendi.');
-    } catch (error) {
-        console.error('Tablo oluşturma/kontrol hatası:', error);
-    }
-}
-
 // --- API ROTLARI ---
 
 app.post('/register', async (req, res) => {
     const { name, email, password, age, weight, height, gender, activityLevel } = req.body;
-    console.log('Kayıt isteği alındı:', { name, email, age });
+    console.log('Kayıt isteği alındı (MongoDB):', { name, email, age });
     
     if (!name || !email || !password || !age || !weight || !height || !gender || !activityLevel) {
         return res.status(400).json({ message: 'Tüm alanlar gerekli.' });
@@ -351,26 +225,33 @@ app.post('/register', async (req, res) => {
     
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        console.log('Şifre başarıyla hashlendi.');
         
-        // E-posta kontrolü
-        const userExists = await db.get('SELECT 1 FROM Users WHERE Email = ?', [email]);
+        // E-posta kontrolü (MongoDB)
+        const userExists = await User.findOne({ email: email.toLowerCase() });
 
         if (userExists) {
             console.log('HATA: E-posta zaten kullanımda:', email);
             return res.status(409).json({ message: 'Bu e-posta adresi zaten kullanımda.' });
         }
         
-        await db.run(`
-            INSERT INTO Users (Name, Email, PasswordHash, Age, Weight, Height, Gender, ActivityLevel) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `, [name, email, hashedPassword, parseInt(age), parseFloat(weight), parseFloat(height), gender, activityLevel]);
+        const newUser = new User({
+            name,
+            email: email.toLowerCase(),
+            passwordHash: hashedPassword,
+            age: parseInt(age),
+            weight: parseFloat(weight),
+            height: parseFloat(height),
+            gender,
+            activityLevel
+        });
 
-        console.log(`Kullanıcı '${email}' başarıyla kaydedildi.`);
+        await newUser.save();
+
+        console.log(`Kullanıcı '${email}' MongoDB'ye kaydedildi.`);
         res.status(201).json({ message: 'Kayıt başarılı!' });
         
     } catch (err) {
-        console.error('Kayıt hatası:', err);
+        console.error('Kayıt hatası (MongoDB):', err);
         res.status(500).json({ message: 'Sunucu hatası: ' + err.message });
     }
 });
@@ -405,59 +286,56 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
-// Kullanıcı Limitlerini Çekme ve Aylık Sıfırlama Fonksiyonu
-// Kullanıcının paketini ve limitlerini çeker, bir ay geçtiyse kullanımları sıfırlar.
-const getAndResetUsage = async (ID, db) => {
+// Kullanıcı Limitlerini Çekme ve Aylık Sıfırlama Fonksiyonu (MongoDB)
+const getAndResetUsage = async (ID) => {
     try {
-        let user = await db.get(`
-            SELECT 
-                u.PackageID, u.SubscriptionEndDate, u.PhotoAnalysisUsed, u.MealSuggestionUsed, u.BloodTestUsed, u.LastUsageReset,
-                p.Name AS PackageName, p.PhotoAnalysisLimit, p.MealSuggestionLimit, p.BloodTestLimit
-            FROM Users u
-            JOIN Packages p ON u.PackageID = p.PackageID
-            WHERE u.ID = ?
-        `, [ID]);
+        const user = await User.findById(ID);
+        if (!user) return null;
 
-        if (!user) {
-            return null;
-        }
+        const pkg = await Package.findOne({ packageId: user.packageId || 1 }) || {
+            name: 'Free',
+            photoAnalysisLimit: 5,
+            mealSuggestionLimit: 5,
+            bloodTestLimit: 1
+        };
 
         const now = new Date();
         let needsReset = false;
 
-        if (user.PackageName !== 'Premium') {
-            const lastReset = user.LastUsageReset ? new Date(user.LastUsageReset) : new Date(0);
+        if (pkg.name !== 'Premium') {
+            const lastReset = user.lastUsageReset ? new Date(user.lastUsageReset) : new Date(0);
             if (now.getMonth() !== lastReset.getMonth() || now.getFullYear() !== lastReset.getFullYear()) {
                 needsReset = true;
             }
         }
-        
+
         if (needsReset) {
-            await db.run(`
-                UPDATE Users SET 
-                    PhotoAnalysisUsed = 0, 
-                    MealSuggestionUsed = 0, 
-                    BloodTestUsed = 0,
-                    LastUsageReset = CURRENT_TIMESTAMP
-                WHERE ID = ?
-            `, [ID]);
-            user.PhotoAnalysisUsed = 0;
-            user.MealSuggestionUsed = 0;
-            user.BloodTestUsed = 0;
+            user.photoAnalysisUsed = 0;
+            user.mealSuggestionUsed = 0;
+            user.bloodTestUsed = 0;
+            user.lastUsageReset = new Date();
+            await user.save();
         }
 
         return {
-            ...user,
+            PackageName: pkg.name,
             Limits: {
-                PhotoAnalysis: { used: user.PhotoAnalysisUsed, limit: user.PhotoAnalysisLimit },
-                MealSuggestion: { used: user.MealSuggestionUsed, limit: user.MealSuggestionLimit },
-                BloodTest: { used: user.BloodTestUsed, limit: user.BloodTestLimit }
+                PhotoAnalysis: { used: user.photoAnalysisUsed || 0, limit: pkg.photoAnalysisLimit },
+                MealSuggestion: { used: user.mealSuggestionUsed || 0, limit: pkg.mealSuggestionLimit },
+                BloodTest: { used: user.bloodTestUsed || 0, limit: pkg.bloodTestLimit }
             }
         };
 
     } catch (err) {
-        console.error("Kullanım bilgileri hatası:", err);
-        throw err;
+        console.error("Kullanım bilgileri hatası (MongoDB):", err);
+        return {
+            PackageName: 'Free',
+            Limits: {
+                PhotoAnalysis: { used: 0, limit: 5 },
+                MealSuggestion: { used: 0, limit: 5 },
+                BloodTest: { used: 0, limit: 1 }
+            }
+        };
     }
 };
 
@@ -466,47 +344,47 @@ const getAndResetUsage = async (ID, db) => {
 
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
-    console.log(`Giriş denemesi: ${email}`);
+    console.log(`Giriş denemesi (MongoDB): ${email}`);
 
     try {
-        const user = await db.get('SELECT ID, Name, Email, PasswordHash, Age, Weight, Height, Gender, ActivityLevel, SubscriptionStatus FROM Users WHERE Email = ?', [email]);
+        const user = await User.findOne({ email: email.toLowerCase() });
 
         if (!user) {
             console.log(`HATA: Kullanıcı bulunamadı: ${email}`);
             return res.status(401).json({ message: 'E-posta veya parola yanlış.' });
         }
 
-        console.log(`Kullanıcı bulundu: ${user.Name}. Şifre karşılaştırılıyor...`);
-        const passwordMatch = await bcrypt.compare(password, user.PasswordHash);
-        console.log(`Şifre eşleşme sonucu: ${passwordMatch}`);
+        console.log(`Kullanıcı bulundu: ${user.name}. Şifre karşılaştırılıyor...`);
+        const passwordMatch = await bcrypt.compare(password, user.passwordHash);
 
         if (passwordMatch) {
-            req.session.ID = user.ID;
-            req.session.userEmail = user.Email;
+            req.session.ID = String(user._id);
+            req.session.userEmail = user.email;
             
             const userData = {
-                id: user.ID,
-                email: user.Email,
-                name: user.Name,
+                id: String(user._id),
+                email: user.email,
+                name: user.name,
                 loggedIn: true,
-                age: user.Age || undefined,
-                weight: user.Weight || undefined,
-                height: user.Height || undefined,
-                gender: user.Gender || undefined,
-                activityLevel: user.ActivityLevel || undefined,
-                subscriptionStatus: user.SubscriptionStatus || 'free',
-                weightUnit: 'kg',
-                heightUnit: 'cm'
+                age: user.age || undefined,
+                weight: user.weight || undefined,
+                height: user.height || undefined,
+                gender: user.gender || undefined,
+                activityLevel: user.activityLevel || undefined,
+                subscriptionStatus: user.subscriptionStatus || 'free',
+                dailyCalorieGoal: user.dailyCalorieGoal || 2000,
+                weightUnit: user.weightUnit || 'kg',
+                heightUnit: user.heightUnit || 'cm'
             };
             
-            console.log('Giriş başarılı, session oluşturuldu.');
+            console.log('Giriş başarılı, session oluşturuldu (MongoDB).');
             return res.status(200).json(userData);
         } else {
             console.log('HATA: Şifre yanlış.');
             return res.status(401).json({ message: 'E-posta veya parola yanlış.' });
         }
     } catch (err) {
-        console.error('Giriş hatası:', err);
+        console.error('Giriş hatası (MongoDB):', err);
         res.status(500).json({ message: 'Sunucu hatası.' });
     }
 });
@@ -519,7 +397,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// Kullanıcı bilgilerini getir
+// Kullanıcı bilgilerini getir (MongoDB)
 app.get('/api/user', async (req, res) => {
     if (!req.session.ID) {
         return res.status(401).json({ loggedIn: false });
@@ -527,18 +405,23 @@ app.get('/api/user', async (req, res) => {
     
     try {
         const ID = req.session.ID;
-        const userPackageState = await getAndResetUsage(ID, db); 
+        const userPackageState = await getAndResetUsage(ID); 
         
-        let userData = await db.get(`
-            SELECT 
-                Name, Email, dailyCalorieGoal, age, weight, height, weightUnit, heightUnit, gender, activityLevel
-            FROM Users 
-            WHERE ID = ?
-        `, [ID]);
+        const user = await User.findById(ID);
         
-        if (userData) {
+        if (user) {
             return res.json({
-                ...userData,
+                id: String(user._id),
+                name: user.name,
+                email: user.email,
+                dailyCalorieGoal: user.dailyCalorieGoal || 2000,
+                age: user.age,
+                weight: user.weight,
+                height: user.height,
+                weightUnit: user.weightUnit || 'kg',
+                heightUnit: user.heightUnit || 'cm',
+                gender: user.gender,
+                activityLevel: user.activityLevel,
                 loggedIn: true,
                 packageInfo: userPackageState
             });
@@ -546,7 +429,7 @@ app.get('/api/user', async (req, res) => {
             return res.status(404).json({ error: 'Kullanıcı bulunamadı.' });
         }
     } catch (err) {
-        console.error("Kullanıcı bilgileri hatası:", err);
+        console.error("Kullanıcı bilgileri hatası (MongoDB):", err);
         res.status(500).json({ error: 'Sunucu hatası.' });
     }
 });
@@ -565,16 +448,15 @@ app.post('/api/subscribe', async (req, res) => {
         const subscriptionEnds = new Date();
         subscriptionEnds.setMonth(subscriptionEnds.getMonth() + 1); 
         
-        await db.run(`
-            UPDATE Users SET 
-                PackageID = ?, 
-                SubscriptionEndDate = ?,
-                PhotoAnalysisUsed = 0, 
-                MealSuggestionUsed = 0, 
-                BloodTestUsed = 0,
-                LastUsageReset = CURRENT_TIMESTAMP
-            WHERE ID = ?
-        `, [packageId, packageId > 1 ? subscriptionEnds.toISOString() : null, ID]);
+        await User.findByIdAndUpdate(ID, {
+            packageId: packageId,
+            subscriptionStatus: packageName,
+            subscriptionEndDate: packageId > 1 ? subscriptionEnds : null,
+            photoAnalysisUsed: 0,
+            mealSuggestionUsed: 0,
+            bloodTestUsed: 0,
+            lastUsageReset: new Date()
+        });
             
         res.json({ 
             success: true, 
@@ -583,32 +465,180 @@ app.post('/api/subscribe', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Abonelik hatası:', error);
+        console.error('Abonelik hatası (MongoDB):', error);
         res.status(500).json({ error: 'Abonelik hatası.' });
     }
 });
 
+// Helper for Iyzico
+const generateId = () => crypto.randomBytes(16).toString('hex');
+
+// Iyzico Checkout Form Initialization (MongoDB)
+app.post('/api/payment/checkout-form', async (req, res) => {
+    try {
+        if (!req.session || !req.session.ID) {
+            return res.status(401).json({ message: 'Lütfen giriş yapın.' });
+        }
+        
+        const { packageId, price, packageName } = req.body;
+        if (!packageId || !price || !packageName) {
+            return res.status(400).json({ message: 'Paket bilgileri eksik.' });
+        }
+
+        const user = await User.findById(req.session.ID);
+
+        if (!user) {
+            return res.status(404).json({ message: 'Kullanıcı bulunamadı.' });
+        }
+
+        const request = {
+            locale: iyzipay.LOCALE.TR,
+            conversationId: generateId(),
+            price: price.toString(),
+            paidPrice: price.toString(),
+            currency: iyzipay.CURRENCY.TRY,
+            basketId: `B-${packageId}-${user._id}`,
+            paymentGroup: iyzipay.PAYMENT_GROUP.SUBSCRIPTION,
+            callbackUrl: 'http://localhost:5000/api/payment/callback',
+            enabledInstallments: [2, 3, 6, 9],
+            buyer: {
+                id: String(user._id),
+                name: user.name.split(' ')[0] || 'Diyet',
+                surname: user.name.split(' ')[1] || 'Kullanıcısı',
+                gsmNumber: '+905324000000',
+                email: user.email,
+                identityNumber: '74300864791',
+                lastLoginDate: '2023-10-05 12:43:35',
+                registrationDate: '2023-04-21 15:12:09',
+                registrationAddress: 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1',
+                ip: '85.34.78.112',
+                city: 'Istanbul',
+                country: 'Turkey',
+                zipCode: '34732'
+            },
+            shippingAddress: {
+                contactName: user.name,
+                city: 'Istanbul',
+                country: 'Turkey',
+                address: 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1',
+                zipCode: '34732'
+            },
+            billingAddress: {
+                contactName: user.name,
+                city: 'Istanbul',
+                country: 'Turkey',
+                address: 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1',
+                zipCode: '34732'
+            },
+            basketItems: [
+                {
+                    id: packageId.toString(),
+                    name: packageName,
+                    category1: 'Subscription',
+                    category2: 'Health',
+                    itemType: iyzipay.BASKET_ITEM_TYPE.VIRTUAL,
+                    price: price.toString()
+                }
+            ]
+        };
+
+        iyzipay.checkoutFormInitialize.create(request, (err, result) => {
+            if (err) {
+                console.error('Iyzico Initialize Error:', err);
+                return res.status(500).json({ message: 'Ödeme sistemiyle iletişim kurulamadı.' });
+            }
+            if (result.status === 'success') {
+                req.session.paymentConversationId = request.conversationId;
+                req.session.pendingPackageId = packageId;
+                
+                res.json({
+                    token: result.token,
+                    checkoutFormContent: result.checkoutFormContent,
+                    tokenExpireTime: result.tokenExpireTime,
+                    paymentPageUrl: result.paymentPageUrl
+                });
+            } else {
+                console.error('Iyzico Initialize Failed:', result.errorMessage);
+                res.status(400).json({ message: result.errorMessage });
+            }
+        });
+
+    } catch (error) {
+        console.error('Checkout form error:', error);
+        res.status(500).json({ message: 'Ödeme formu oluşturulamadı.' });
+    }
+});
+
+// Iyzico Callback (MongoDB)
+app.post('/api/payment/callback', async (req, res) => {
+    const { token } = req.body;
+    
+    if (!token) {
+        return res.status(400).send('Token eksik.');
+    }
+
+    const request = {
+        locale: iyzipay.LOCALE.TR,
+        conversationId: generateId(),
+        token: token
+    };
+
+    iyzipay.checkoutForm.retrieve(request, async (err, result) => {
+        if (err) {
+            console.error('Iyzico Retrieve Error:', err);
+            return res.redirect('http://localhost:5173/payment-fail');
+        }
+
+        if (result.status === 'success' && result.paymentStatus === 'SUCCESS') {
+            try {
+                const basketIdParts = result.basketId.split('-');
+                const packageId = parseInt(basketIdParts[1], 10);
+                const userId = basketIdParts[2];
+
+                const pkgDoc = await Package.findOne({ packageId });
+                const packageName = pkgDoc ? pkgDoc.name : 'Premium';
+
+                const subscriptionEnds = new Date();
+                subscriptionEnds.setMonth(subscriptionEnds.getMonth() + 1);
+
+                await User.findByIdAndUpdate(userId, {
+                    packageId: packageId,
+                    subscriptionStatus: packageName,
+                    subscriptionEndDate: subscriptionEnds
+                });
+                
+                return res.redirect('http://localhost:5173/payment-success');
+            } catch (dbError) {
+                console.error('Callback DB Error (MongoDB):', dbError);
+                return res.redirect('http://localhost:5173/payment-fail');
+            }
+        } else {
+            console.error('Payment not successful:', result.errorMessage);
+            return res.redirect('http://localhost:5173/payment-fail');
+        }
+    });
+});
+
 // Çıkış işlemi
 app.post('/logout', async (req, res) => {
-    // Eğer frontend logout çağrısında weight/waist gönderirse kaydet
-    
-
     req.session.destroy((err) => {
         if (err) {
             console.error('Çıkış hatası:', err);
             return res.status(500).json({ message: 'Çıkış işlemi başarısız.' });
         }
+
         res.clearCookie('connect.sid');
         res.json({ message: 'Çıkış başarılı!' });
     });
 });
-// KULLANICI PROFİLİNİ GÜNCELLEME ENDPOINT'İ
+
+// KULLANICI PROFİLİNİ GÜNCELLEME ENDPOINT'İ (MongoDB)
 app.put('/api/user/profile', async (req, res) => {
     if (!req.session.ID) {
         return res.status(401).json({ message: 'Yetkisiz erişim.' });
     }
 
-    const { name, email, age, weight, height, gender, activityLevel } = req.body;
+    const { name, email, age, weight, height, gender, activityLevel, dailyCalorieGoal } = req.body;
     const ID = req.session.ID;
 
     if (!name || !email || !age || !weight || !height || !gender || !activityLevel) {
@@ -616,142 +646,187 @@ app.put('/api/user/profile', async (req, res) => {
     }
 
     try {
-        await db.run(`
-            UPDATE Users 
-            SET Name = ?, Email = ?, Age = ?, Weight = ?, Height = ?, Gender = ?, ActivityLevel = ?
-            WHERE ID = ?
-        `, [name, email, age, weight, height, gender, activityLevel, ID]);
+        await User.findByIdAndUpdate(ID, {
+            name,
+            email: email.toLowerCase(),
+            age,
+            weight,
+            height,
+            gender,
+            activityLevel,
+            dailyCalorieGoal: dailyCalorieGoal || 2000
+        });
         
         res.status(200).json({ message: 'Profil başarıyla güncellendi!' });
     } catch (error) {
-        console.error('Profil güncelleme hatası:', error);
-        if (error.code === 'SQLITE_CONSTRAINT' || error.message.includes('UNIQUE constraint failed')) {
-            return res.status(409).json({ message: 'Bu e-posta adresi başka bir hesap tarafından kullanılıyor.' });
-        }
+        console.error('Profil güncelleme hatası (MongoDB):', error);
         res.status(500).json({ message: 'Sunucu hatası.' });
     }
 });
 
-
-
-
+// YEMEK EKLEME ENDPOINT'İ (MongoDB)
 app.post('/api/add-food', async (req, res) => {
   try {
-    const UserID = req.session?.ID ?? req.body.ID ?? req.body.UserID ?? null;
+    const userId = req.session?.ID ?? req.body.ID ?? req.body.UserID ?? null;
     const { foodId, name, calories, protein, carbs, fat, amount, meal, date } = req.body;
-    const DateParam = date || new Date().toISOString().slice(0,10);
-
-    console.log('--- Yemek Ekleme İsteği Detayı ---');
-    console.log(`Gelen Veri:`, { foodId, name, calories, protein, carbs, fat, amount, meal, date });
-    console.log(`UserID: ${UserID}`);
+    const dateParam = date || new Date().toISOString().slice(0,10);
     
-    if (!UserID) return res.status(401).json({ message: 'Yetkisiz.' });
+    if (!userId) return res.status(401).json({ message: 'Yetkisiz.' });
 
     if (!name || calories == null) {
-        console.log(`HATA: Eksik veri saptandı! Name: ${name}, Calories: ${calories}`);
         return res.status(400).json({ message: 'Eksik veri: İsim ve kalori zorunludur.' });
     }
 
-    const result = await db.run(`
-      INSERT INTO ConsumedFoods (UserID, FoodID, Name, Calories, Protein, Carbs, Fat, Amount, MealTime, Date)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [UserID, foodId, name, calories, protein, carbs, fat, amount, meal, DateParam]);
+    const newFood = new ConsumedFood({
+      userId,
+      foodId,
+      name,
+      calories,
+      protein: protein || 0,
+      carbs: carbs || 0,
+      fat: fat || 0,
+      amount: amount || 100,
+      mealTime: meal,
+      date: dateParam
+    });
 
-    console.log(`[DB] Yemek Kaydedildi: ${name} (${calories} kcal) - UserID: ${UserID}`);
-    return res.status(201).json({ message: 'Yemek başarıyla eklendi.', id: result.lastID });
+    await newFood.save();
+
+    console.log(`[MongoDB] Yemek Kaydedildi: ${name} (${calories} kcal) - UserID: ${userId}`);
+    return res.status(201).json({ message: 'Yemek başarıyla eklendi.', id: String(newFood._id) });
   } catch (err) {
-    console.error('[DB HATA] Yemek eklenemedi:', err);
+    console.error('[MongoDB HATA] Yemek eklenemedi:', err);
     return res.status(500).json({ message: err.message });
   }
 });
 
-
-
-
-
-
-// Egzersiz ekleme endpoint'i
-// Egzersiz ekleme endpoint'i
+// EGZERSİZ EKLEME ENDPOINT'İ (MongoDB)
 app.post('/api/add-exercise', async (req, res) => {
     try {
         const { exerciseId, name, minutes, totalCaloriesBurned, date } = req.body;
-        const UserID = req.session.ID;
+        const userId = req.session.ID;
 
-        if (!UserID) return res.status(401).json({ message: 'Yetkisiz.' });
+        if (!userId) return res.status(401).json({ message: 'Yetkisiz.' });
         
-        const result = await db.run(`
-            INSERT INTO BurnedExercises (UserID, ExerciseID, Name, Minutes, TotalCaloriesBurned, Date)
-            VALUES (?, ?, ?, ?, ?, ?)
-        `, [UserID, exerciseId, name, minutes, totalCaloriesBurned, date]);
+        const newExercise = new BurnedExercise({
+            userId,
+            exerciseId,
+            name,
+            minutes,
+            totalCaloriesBurned,
+            date: date || new Date().toISOString().slice(0,10)
+        });
+
+        await newExercise.save();
         
-        console.log(`[DB] Egzersiz Kaydedildi: ${name} (${totalCaloriesBurned} kcal) - UserID: ${UserID}`);
-        res.status(200).json({ message: 'Egzersiz eklendi', id: result.lastID });
+        console.log(`[MongoDB] Egzersiz Kaydedildi: ${name} (${totalCaloriesBurned} kcal) - UserID: ${userId}`);
+        res.status(200).json({ message: 'Egzersiz eklendi', id: String(newExercise._id) });
     } catch (error) {
-        console.error('[DB HATA] Egzersiz eklenemedi:', error);
+        console.error('[MongoDB HATA] Egzersiz eklenemedi:', error);
         res.status(500).json({ message: 'Sunucu hatası' });
     }
 });
 
+// SU EKLEME ENDPOINT'İ (MongoDB)
 app.post('/api/add-water', async (req, res) => {
     try {
         const { amount, date } = req.body;
-        const UserID = req.session.ID;
+        const userId = req.session.ID;
 
-        if (!UserID) return res.status(401).json({ message: 'Yetkisiz.' });
+        if (!userId) return res.status(401).json({ message: 'Yetkisiz.' });
         
-        const result = await db.run(`
-            INSERT INTO WaterIntake (UserID, Amount, Date)
-            VALUES (?, ?, ?)
-        `, [UserID, amount, date]);
+        const newWater = new WaterIntake({
+            userId,
+            amount,
+            date: date || new Date().toISOString().slice(0,10)
+        });
+
+        await newWater.save();
         
-        console.log(`[DB] Su Kaydedildi: ${amount}ml - UserID: ${UserID}`);
-        res.status(200).json({ message: 'Su eklendi', id: result.lastID });
+        console.log(`[MongoDB] Su Kaydedildi: ${amount}ml - UserID: ${userId}`);
+        res.status(200).json({ message: 'Su eklendi', id: String(newWater._id) });
     } catch (error) {
-        console.error('[DB HATA] Su eklenemedi:', error);
+        console.error('[MongoDB HATA] Su eklenemedi:', error);
         res.status(500).json({ message: 'Sunucu hatası' });
     }
 });
 
-// Günlük verileri çekme endpoint'i
+// GÜNLÜK VERİLERİ ÇEKME ENDPOINT'İ (MongoDB)
 app.get('/api/daily-logs', async (req, res) => {
     try {
-        const ID = req.session.ID;
+        const userId = req.session.ID;
         const date = req.query.date;
-        if (!ID || !date) return res.status(401).json({ message: 'Eksik bilgi.' });
+        if (!userId || !date) return res.status(401).json({ message: 'Eksik bilgi.' });
         
-        const consumedFoods = await db.all('SELECT * FROM ConsumedFoods WHERE UserID = ? AND Date = ?', [ID, date]);
-        const burnedExercises = await db.all('SELECT * FROM BurnedExercises WHERE UserID = ? AND Date = ?', [ID, date]);
-        const waterResult = await db.get('SELECT SUM(Amount) as totalWater FROM WaterIntake WHERE UserID = ? AND Date = ?', [ID, date]);
+        const rawFoods = await ConsumedFood.find({ userId, date });
+        const rawExercises = await BurnedExercise.find({ userId, date });
+        const waterDocs = await WaterIntake.find({ userId, date });
+
+        const totalWaterIntake = waterDocs.reduce((sum, w) => sum + w.amount, 0);
+
+        const consumedFoods = rawFoods.map(f => ({
+            id: String(f._id),
+            ID: String(f._id),
+            name: f.name,
+            Name: f.name,
+            totalCalories: f.calories,
+            Calories: f.calories,
+            totalProtein: f.protein,
+            Protein: f.protein,
+            totalCarbs: f.carbs,
+            Carbs: f.carbs,
+            totalFat: f.fat,
+            Fat: f.fat,
+            amount: f.amount,
+            Amount: f.amount,
+            mealTime: f.mealTime,
+            MealTime: f.mealTime,
+            date: f.date,
+            Date: f.date
+        }));
+
+        const burnedExercises = rawExercises.map(e => ({
+            id: String(e._id),
+            ID: String(e._id),
+            name: e.name,
+            Name: e.name,
+            minutes: e.minutes,
+            Minutes: e.minutes,
+            totalCaloriesBurned: e.totalCaloriesBurned,
+            TotalCaloriesBurned: e.totalCaloriesBurned,
+            date: e.date,
+            Date: e.date
+        }));
 
         res.status(200).json({
             consumedFoods,
             burnedExercises,
-            totalWaterIntake: waterResult ? (waterResult.totalWater || 0) : 0
+            totalWaterIntake
         });
     } catch (error) {
-        console.error('Günlük veri çekme hatası:', error);
+        console.error('Günlük veri çekme hatası (MongoDB):', error);
         res.status(500).json({ message: 'Sunucu hatası' });
     }
 });
 
-
-// YEMEK KAYDINI SİLME ENDPOINT'İ
+// YEMEK KAYDINI SİLME ENDPOINT'İ (MongoDB)
 app.delete('/api/delete-food/:id', async (req, res) => {
   if (!req.session.ID) return res.status(401).json({ message: 'Yetkisiz.' });
   try {
-    const result = await db.run('DELETE FROM ConsumedFoods WHERE ID = ? AND UserID = ?', [req.params.id, req.session.ID]);
-    if (result.changes > 0) return res.status(200).json({ message: 'Silindi.' });
+    const deleted = await ConsumedFood.findOneAndDelete({ _id: req.params.id, userId: req.session.ID });
+    if (deleted) return res.status(200).json({ message: 'Silindi.' });
     return res.status(404).json({ message: 'Bulunamadı.' });
   } catch (err) {
     res.status(500).json({ message: 'Hata.' });
   }
 });
 
+// EGZERSİZ KAYDINI SİLME ENDPOINT'İ (MongoDB)
 app.delete('/api/delete-exercise/:id', async (req, res) => {
     if (!req.session.ID) return res.status(401).json({ message: 'Yetkisiz.' });
     try {
-        const result = await db.run('DELETE FROM BurnedExercises WHERE ID = ? AND UserID = ?', [req.params.id, req.session.ID]);
-        if (result.changes > 0) return res.status(200).json({ message: 'Silindi.' });
+        const deleted = await BurnedExercise.findOneAndDelete({ _id: req.params.id, userId: req.session.ID });
+        if (deleted) return res.status(200).json({ message: 'Silindi.' });
         return res.status(404).json({ message: 'Bulunamadı.' });
     } catch (error) {
         res.status(500).json({ message: 'Hata.' });
@@ -832,12 +907,26 @@ Lütfen cevabını SADECE aşağıdaki JSON formatında ver, markdown işaretler
 // Sunucuyu başlatmak için asenkron bir fonksiyon oluşturuyoruz
 const startServer = async () => {
   try {
-    // Önce veritabanı bağlantısının tamamlanmasını bekliyoruz.
-    await connectToDatabase();
-    
-    // Veritabanı hazır olduğunda sunucuyu dinlemeye başlıyoruz.
-    app.listen(port, '0.0.0.0', () => {
-      console.log(`Sunucu http://localhost:${port} adresinde çalışıyor`);
+    // Pure MongoDB Veritabanı Bağlantısı
+    await connectToMongoDB();
+
+    app.listen(port, () => {
+      console.log(`Sunucu http://localhost:${port} adresinde çalışıyor (Pure MongoDB 🚀)`);
+    });
+
+    // React Router Catch-All (Tüm route'ları index.html'e yönlendir)
+    app.get('*', (req, res) => {
+        if (req.path.startsWith('/api') || req.path === '/login' || req.path === '/register') {
+            return res.status(404).json({ message: 'Endpoint bulunamadı.' });
+        }
+        
+        const indexPath = path.join(__dirname, '../frontend/dist/index.html');
+        if (fs.existsSync(indexPath)) {
+            res.sendFile(indexPath);
+        } else {
+            // Eğer dist/index.html yoksa (örneğin dev modunda), API isteği olmayanlar için 404 dönebiliriz.
+            res.status(404).send('Frontend build (dist/index.html) bulunamadı. Lütfen "npm run build" çalıştırın veya dev sunucusunu kullanın.');
+        }
     });
   } catch (error) {
     console.error('Sunucu başlatılamadı:', error);
