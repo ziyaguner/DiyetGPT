@@ -15,7 +15,7 @@ import PaymentFail from './PaymentFail.tsx';
 
 // Axios global config
 
-axios.defaults.baseURL = 'http://localhost:5000';
+axios.defaults.baseURL = window.location.origin;
 axios.defaults.withCredentials = true;
 
 
