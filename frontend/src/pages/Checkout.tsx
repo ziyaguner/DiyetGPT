@@ -58,19 +58,77 @@ const Checkout = () => {
     }
   }, [htmlContent]);
 
-  const handleSimulatedPayment = (e: React.FormEvent) => {
+  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value.replace(/\D/g, '');
+    if (val.length >= 3) {
+      val = `${val.slice(0, 2)}/${val.slice(2, 4)}`;
+    }
+    setExpiry(val);
+  };
+
+  const handleSimulatedPayment = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!cardNumber || !cardHolder || !expiry || !cvv) {
-      toast.error('Lütfen tüm kart bilgilerini doldurun.');
+      toast.error('Lütfen tüm kart bilgilerini eksiksiz doldurun.');
+      return;
+    }
+
+    // 1. Kart Numarası Kontrolü (En az 15 rakam olmalı)
+    const cleanCardNo = cardNumber.replace(/\s+/g, '');
+    if (!/^\d{15,16}$/.test(cleanCardNo)) {
+      toast.error('Geçersiz kart numarası! Kart 15 veya 16 haneli olmalıdır.');
+      return;
+    }
+
+    // 2. Son Kullanma Tarihi Kontrolü (AA/YY formatı, Ay 01-12 arası olmalı)
+    const expiryRegex = /^(0[1-9]|1[0-2])\/([2-9][0-9])$/;
+    if (!expiryRegex.test(expiry)) {
+      toast.error('Geçersiz son kullanma tarihi! AA/YY formatında olmalıdır (Örn: 12/28)');
+      return;
+    }
+
+    const [expMonthStr, expYearStr] = expiry.split('/');
+    const expMonth = parseInt(expMonthStr, 10);
+    const expYear = parseInt('20' + expYearStr, 10);
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+
+    if (expYear < currentYear || (expYear === currentYear && expMonth < currentMonth)) {
+      toast.error('Kartınızın son kullanma tarihi geçmiş!');
+      return;
+    }
+
+    // 3. CVC Kontrolü (3 veya 4 rakam)
+    if (!/^\d{3,4}$/.test(cvv)) {
+      toast.error('Geçersiz CVC güvenlik kodu! (3 veya 4 rakam olmalıdır)');
       return;
     }
 
     setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
-      toast.success(`${packageInfo.packageName} aboneliğiniz başarıyla aktifleştirildi!`);
+
+    try {
+      // 4. Veritabanında (MongoDB/SQL) aboneliği aktifleştir!
+      await axios.post('/api/subscribe', {
+        packageId: packageInfo.packageId,
+        packageName: packageInfo.packageName || 'Premium'
+      }, { withCredentials: true });
+
+      // 5. Güncel kullanıcı bilgilerini çek ve localStorage'ı güncelle
+      const userRes = await axios.get('/api/user', { withCredentials: true });
+      if (userRes.data && userRes.data.loggedIn) {
+        localStorage.setItem('user', JSON.stringify(userRes.data));
+      }
+
+      toast.success(`${packageInfo.packageName || 'Premium'} aboneliğiniz veritabanında başarıyla aktifleştirildi! 🎉`);
       navigate('/payment-success');
-    }, 1500);
+    } catch (err: any) {
+      console.error('Abonelik aktifleştirme hatası:', err);
+      toast.error(err.response?.data?.error || 'Abonelik veritabanına işlenirken bir sorun oluştu.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -142,7 +200,7 @@ const Checkout = () => {
                     type="text" 
                     placeholder="12/28" 
                     value={expiry} 
-                    onChange={(e) => setExpiry(e.target.value)} 
+                    onChange={handleExpiryChange} 
                     maxLength={5}
                     className="w-full bg-slate-800/80 border border-slate-700 rounded-2xl py-3 px-4 text-sm text-white text-center focus:outline-none focus:border-emerald-500 font-mono" 
                     required 
