@@ -18,7 +18,7 @@ import { motion, AnimatePresence, cubicBezier } from 'framer-motion';
 import axios from 'axios';
 import type { Recipe, Exercise } from '../../../data/mockContent';
 import  { mockRecipes, exercises } from '../../../data/mockContent';
-import { BatteryCharging, CloudLightning, Activity, Heart, MessageCircle,Coffee, Pizza, Fish, Slice } from "lucide-react"
+import { BatteryCharging, CloudLightning, Activity, Heart, MessageCircle,Coffee, Pizza, Fish, Slice, Timer } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Bar, PieChart, Pie, Cell,Legend,Area } from 'recharts';
 
 
@@ -1012,6 +1012,22 @@ export default function Dashboard() {
   const [ingredients, setIngredients] = useState<string[]>([]);
   const [recipes, setRecipes] = useState<RecipeSuggestion | null>(null);
   const [isRecommending, setIsRecommending] = useState(false);
+  const [fastingStartTime, setFastingStartTime] = useState<string | null>(() => {
+    return localStorage.getItem('fastingStartTime');
+  });
+
+  const toggleFasting = () => {
+    if (fastingStartTime) {
+      setFastingStartTime(null);
+      localStorage.removeItem('fastingStartTime');
+      toast.success("Aralıklı oruç seansı tamamlandı! Tebrikler 🎉");
+    } else {
+      const nowStr = new Date().toISOString();
+      setFastingStartTime(nowStr);
+      localStorage.setItem('fastingStartTime', nowStr);
+      toast.success("16/8 Aralıklı Oruç sayacı başlatıldı! ⏳");
+    }
+  };
 
   const [profileForm, setProfileForm] = useState({
     name: '', email: '', age: '', weight: '', height: '', gender: 'male', activityLevel: 'sedentary'
@@ -2130,34 +2146,48 @@ const handleSendAiMessage = async () => {
                   </div>
                 </Card>
 
-                {/* Günlük Makrolar */}
+                {/* Günlük Makrolar (Dinamik Hedef Gramlar) */}
                 <Card className={`p-6 shadow-md rounded-3xl ${cardBgClass} border border-slate-200/80 dark:border-slate-800 space-y-4`}>
-                  <h3 className={`text-base font-black ${textClass} flex items-center gap-2`}>
-                    <PieChart className="h-5 w-5 text-amber-500" /> Günlük Makro Dağılımı
-                  </h3>
-                  <div className="space-y-3.5">
-                    <div>
-                      <div className="flex justify-between text-xs font-extrabold mb-1.5">
-                        <span className="text-emerald-500">Protein</span>
-                        <span className={textClass}>{Math.round(totalProtein)}g / 120g</span>
-                      </div>
-                      <Progress value={Math.min(100, (totalProtein / 120) * 100)} className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800" />
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-xs font-extrabold mb-1.5">
-                        <span className="text-amber-500">Karbonhidrat</span>
-                        <span className={textClass}>{Math.round(totalCarbs)}g / 200g</span>
-                      </div>
-                      <Progress value={Math.min(100, (totalCarbs / 200) * 100)} className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800" />
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-xs font-extrabold mb-1.5">
-                        <span className="text-rose-500">Yağ</span>
-                        <span className={textClass}>{Math.round(totalFat)}g / 55g</span>
-                      </div>
-                      <Progress value={Math.min(100, (totalFat / 55) * 100)} className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800" />
-                    </div>
-                  </div>
+                  {(() => {
+                    const goalCal = user?.dailyCalorieGoal || 2000;
+                    const targetProtein = Math.round((goalCal * 0.25) / 4);
+                    const targetCarbs = Math.round((goalCal * 0.50) / 4);
+                    const targetFat = Math.round((goalCal * 0.25) / 9);
+
+                    return (
+                      <>
+                        <div className="flex justify-between items-center">
+                          <h3 className={`text-base font-black ${textClass} flex items-center gap-2`}>
+                            <PieChart className="h-5 w-5 text-amber-500" /> Günlük Makro Dağılımı
+                          </h3>
+                          <span className="text-xs font-bold text-slate-400">Hedef Bütçenize Göre</span>
+                        </div>
+                        <div className="space-y-3.5">
+                          <div>
+                            <div className="flex justify-between text-xs font-extrabold mb-1.5">
+                              <span className="text-emerald-500 flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-500"></span> Protein (%25)</span>
+                              <span className={textClass}>{Math.round(totalProtein)}g / {targetProtein}g</span>
+                            </div>
+                            <Progress value={Math.min(100, (totalProtein / targetProtein) * 100)} className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800" />
+                          </div>
+                          <div>
+                            <div className="flex justify-between text-xs font-extrabold mb-1.5">
+                              <span className="text-amber-500 flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-500"></span> Karbonhidrat (%50)</span>
+                              <span className={textClass}>{Math.round(totalCarbs)}g / {targetCarbs}g</span>
+                            </div>
+                            <Progress value={Math.min(100, (totalCarbs / targetCarbs) * 100)} className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800" />
+                          </div>
+                          <div>
+                            <div className="flex justify-between text-xs font-extrabold mb-1.5">
+                              <span className="text-rose-500 flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-rose-500"></span> Yağ (%25)</span>
+                              <span className={textClass}>{Math.round(totalFat)}g / {targetFat}g</span>
+                            </div>
+                            <Progress value={Math.min(100, (totalFat / targetFat) * 100)} className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800" />
+                          </div>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </Card>
 
                 {/* Hızlı Su Takip Çubuğu */}
@@ -2193,6 +2223,62 @@ const handleSendAiMessage = async () => {
                       </Button>
                     ))}
                   </div>
+                </Card>
+
+                {/* 16/8 Aralıklı Oruç (Intermittent Fasting) Takip Kartı */}
+                <Card className={`p-6 shadow-md rounded-3xl ${cardBgClass} border border-slate-200/80 dark:border-slate-800 space-y-4`}>
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 rounded-2xl bg-purple-500/10 text-purple-500 border border-purple-500/20">
+                        <Timer className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h3 className={`text-sm font-black ${textClass}`}>16/8 Aralıklı Oruç Sayaç</h3>
+                        <span className="text-xs text-slate-400 font-bold">Yeme & Oruç Penceresi Takibi</span>
+                      </div>
+                    </div>
+                    <Button 
+                      onClick={toggleFasting} 
+                      className={fastingStartTime ? "bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-2xl text-xs h-9 px-4" : "bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-2xl text-xs h-9 px-4"}
+                    >
+                      {fastingStartTime ? 'Orucu Bitir' : 'Orucu Başlat'}
+                    </Button>
+                  </div>
+
+                  {(() => {
+                    if (!fastingStartTime) {
+                      return (
+                        <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700 text-center">
+                          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                            Son yemeğinizi yedikten sonra 16 saatlik yağ yakım sürecini başlatmak için <b>Orucu Başlat</b> butonuna tıklayın.
+                          </p>
+                        </div>
+                      );
+                    }
+
+                    const startObj = new Date(fastingStartTime);
+                    const nowObj = new Date();
+                    const diffMs = Math.max(0, nowObj.getTime() - startObj.getTime());
+                    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+                    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                    const progress = Math.min(100, (diffMs / (16 * 60 * 60 * 1000)) * 100);
+
+                    return (
+                      <div className="space-y-3 p-4 rounded-2xl bg-purple-500/10 border border-purple-500/20">
+                        <div className="flex justify-between items-center text-xs font-black">
+                          <span className="text-purple-600 dark:text-purple-300">
+                            {hours >= 16 ? '🎉 16 Saat Doldu - Yeme Penceresi Açık!' : `⏳ Geçen Süre: ${hours} sa ${minutes} dk`}
+                          </span>
+                          <span className="text-purple-500 font-bold">%{Math.round(progress)}</span>
+                        </div>
+                        <Progress value={progress} className="h-2.5 rounded-full bg-purple-950/30" />
+                        <div className="flex justify-between text-[11px] text-slate-400 font-bold">
+                          <span>Başlangıç: {startObj.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
+                          <span>Hedef: 16 Saat (Yağ Yakım Modu)</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </Card>
               </div>
 
