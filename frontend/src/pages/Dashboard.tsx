@@ -1360,14 +1360,19 @@ const handleAnalyzeBloodTest = async () => {
   const handleStartDiet = (diet: Diet) => {
     setSelectedDietPlan(diet);
     localStorage.setItem('selectedDiet', JSON.stringify(diet));
-    toast.success(`${diet.name} diyetine başarıyla başladınız! Aktif diyetiniz güncellendi.`);
+    if (!localStorage.getItem('selectedDietStartDate')) {
+      localStorage.setItem('selectedDietStartDate', new Date().toISOString());
+    }
+    toast.success(`${diet.name} diyetine başarıyla başladınız! Kontrol Paneline yönlendiriliyorsunuz.`);
     setIsDietDialogOpen(false);
+    setActiveTab('personal-screen');
   };
 
   // Diyeti Durdur handler
   const handleStopDiet = () => {
     setSelectedDietPlan(null);
     localStorage.removeItem('selectedDiet');
+    localStorage.removeItem('selectedDietStartDate');
     toast.info("Diyet programından çıkış yapıldı.");
   };
 
@@ -1437,6 +1442,54 @@ const handleAnalyzeBloodTest = async () => {
   const rawProgress = rawGoal > 0 ? ((totalConsumedCalories || 0) / rawGoal) * 100 : 0;
   const calorieProgressPercentage = isNaN(rawProgress) || !isFinite(rawProgress) ? 0 : rawProgress;
 
+  // Türkçe karakter duyarlı metin dönüştürücü
+  const normalizeText = (str: string): string => {
+    if (!str) return '';
+    return str
+      .replace(/İ/g, 'i')
+      .replace(/I/g, 'ı')
+      .replace(/Ğ/g, 'ğ')
+      .replace(/Ü/g, 'ü')
+      .replace(/Ş/g, 'ş')
+      .replace(/Ö/g, 'ö')
+      .replace(/Ç/g, 'ç')
+      .toLocaleLowerCase('tr-TR')
+      .trim();
+  };
+
+  // Seçilen kategori ve arama sorgusuna göre yiyecekleri filtreler
+  const filteredFoods = useMemo(() => {
+    let result = foods;
+    if (selectedFoodCategory && selectedFoodCategory !== 'Tüm Kategoriler') {
+      const normCat = normalizeText(selectedFoodCategory);
+      result = result.filter(food => normalizeText(food.category) === normCat);
+    }
+    if (foodQuery && foodQuery.trim() !== '') {
+      const q = normalizeText(foodQuery);
+      result = result.filter(food => 
+        normalizeText(food.name).includes(q) || 
+        normalizeText(food.category).includes(q)
+      );
+    }
+    return result;
+  }, [foodQuery, selectedFoodCategory]); 
+
+  // Seçilen tip, zorluk ve arama sorgusuna göre egzersizleri filtreler
+  const filteredExercises = useMemo(() => {
+    let result = exercises;
+    if (selectedExerciseType !== 'all') {
+      result = result.filter(ex => ex.type === selectedExerciseType);
+    }
+    if (selectedExerciseDifficulty !== 'all') {
+      result = result.filter(ex => ex.difficulty === selectedExerciseDifficulty);
+    }
+    if (exerciseSearchQuery && exerciseSearchQuery.trim() !== '') {
+      const q = normalizeText(exerciseSearchQuery);
+      result = result.filter(ex => normalizeText(ex.name).includes(q));
+    }
+    return result;
+  }, [exerciseSearchQuery, selectedExerciseType, selectedExerciseDifficulty]);
+
   // Makro besinleri hesaplar
   const totalProtein = useMemo(() => {
     return consumedFoods.reduce((sum, food) => sum + food.totalProtein, 0);
@@ -1466,42 +1519,17 @@ const handleAnalyzeBloodTest = async () => {
     ];
   }, [totalProtein, totalCarbs, totalFat]);
 
-
-  // Seçilen kategori ve arama sorgusuna göre yiyecekleri filtreler
-  const filteredFoods = useMemo(() => {
-    let result = foods;
-    if (selectedFoodCategory && selectedFoodCategory !== 'Tüm Kategoriler') {
-      result = getFoodsByCategory(selectedFoodCategory);
-    }
-    if (foodQuery) {
-      result = searchFoods(foodQuery); 
-    }
-    return result;
-  }, [foodQuery, selectedFoodCategory]); 
-
-  // Seçilen tip, zorluk ve arama sorgusuna göre egzersizleri filtreler
-  const filteredExercises = useMemo(() => {
-    let result = exercises;
-    if (selectedExerciseType !== 'all') {
-      result = result.filter(ex => ex.type === selectedExerciseType);
-    }
-    if (selectedExerciseDifficulty !== 'all') {
-      result = result.filter(ex => ex.difficulty === selectedExerciseDifficulty);
-    }
-    if (exerciseSearchQuery) {
-      result = result.filter(ex => ex.name.toLowerCase().includes(exerciseSearchQuery.toLowerCase()));
-    }
-    return result;
-  }, [exerciseSearchQuery, selectedExerciseType, selectedExerciseDifficulty]);
-
   // Tarifleri arama sorgusuna göre filtreler
   const filteredRecipes = useMemo(() => {
-    if (!foodQuery) return mockRecipes;
-    const lowerCaseQuery = foodQuery.toLowerCase();
+    if (!foodQuery || foodQuery.trim() === '') return mockRecipes;
+    const q = normalizeText(foodQuery);
     return mockRecipes.filter(recipe =>
-      recipe.name.toLowerCase().includes(lowerCaseQuery) ||
-      recipe.description.toLowerCase().includes(lowerCaseQuery) ||
-      recipe.ingredients.some(ing => ing.name.toLowerCase().includes(lowerCaseQuery))
+      normalizeText(recipe.name).includes(q) ||
+      normalizeText(recipe.description || '').includes(q) ||
+      recipe.ingredients.some(ing => {
+        const text = typeof ing === 'string' ? ing : ((ing as any)?.name || '');
+        return normalizeText(text).includes(q);
+      })
     );
   }, [foodQuery]);
 
@@ -1948,16 +1976,91 @@ const handleSendAiMessage = async () => {
               })()}
             </div>
             
-            {/* Aktif Diyet Programı Banner (Varsa) */}
+            {/* Aktif Diyet Programı Banner & Akıllı Öğün Saat Hatırlatıcısı */}
             {selectedDietPlan && (
-              <div className={`p-4 rounded-2xl ${cardBgClass} border border-emerald-500/40 flex items-center justify-between shadow-md`}>
-                <div className="flex items-center gap-2.5">
-                  <Badge className="bg-emerald-500 text-white font-extrabold text-xs px-2.5 py-1">Aktif Diyet Programı</Badge>
-                  <span className={`text-base font-black ${textClass}`}>{selectedDietPlan.name}</span>
+              <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-emerald-950 via-slate-900 to-teal-950 border border-emerald-500/40 text-white shadow-xl space-y-4 relative overflow-hidden">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-emerald-500/20 pb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="p-2.5 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                      <BookOpen className="h-6 w-6" />
+                    </span>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        {(() => {
+                          const dietStartStr = localStorage.getItem('selectedDietStartDate') || new Date().toISOString();
+                          const startDateObj = new Date(dietStartStr);
+                          const nowObj = new Date();
+                          const diffDays = Math.max(1, Math.floor((nowObj.getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+                          return (
+                            <span className="text-xs font-black uppercase tracking-wider bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                              <Sparkles className="h-3 w-3 text-amber-400" /> {diffDays}. Gününüz
+                            </span>
+                          );
+                        })()}
+                        {selectedDietPlan.target && (
+                          <span className="text-xs text-slate-300 font-semibold">• {selectedDietPlan.target}</span>
+                        )}
+                      </div>
+                      <h3 className="text-xl font-black tracking-tight mt-0.5">{selectedDietPlan.name} Diyet Programı</h3>
+                    </div>
+                  </div>
+
+                  <Button onClick={handleStopDiet} variant="ghost" size="sm" className="text-rose-300 hover:text-white hover:bg-rose-500/20 border border-rose-500/30 text-xs font-bold h-9 rounded-xl">
+                    <X className="h-4 w-4 mr-1" /> Programı Bitir
+                  </Button>
                 </div>
-                <Button onClick={handleStopDiet} variant="ghost" size="sm" className="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-bold h-8 rounded-xl">
-                  <X className="h-4 w-4 mr-1" /> Durdur
-                </Button>
+
+                {/* Öğün Hatırlatma & Saat Bazlı Menü Tavsiyesi */}
+                {(() => {
+                  const currentHour = new Date().getHours();
+                  let mealLabel = 'Öğle Yemeği Vakti 🍱';
+                  let mealAdvice = 'Şu an Öğle Yemeği Vakti! Dengeli ve besleyici tabağınızı hazırlayın.';
+                  let targetMealKey = 'Öğle';
+
+                  if (currentHour >= 6 && currentHour < 11) {
+                    mealLabel = 'Kahvaltı Vakti 🍳';
+                    mealAdvice = 'Güne harika ve enerjik bir başlangıç yapmak için Kahvaltı Vakti!';
+                    targetMealKey = 'Kahvaltı';
+                  } else if (currentHour >= 11 && currentHour < 15) {
+                    mealLabel = 'Öğle Yemeği Vakti 🍱';
+                    mealAdvice = 'Şu an Öğle Yemeği Vakti! Protein ağırlıklı tabağınızı tüketin.';
+                    targetMealKey = 'Öğle';
+                  } else if (currentHour >= 15 && currentHour < 18.5) {
+                    mealLabel = 'Ara Öğün Vakti 🍏';
+                    mealAdvice = 'Metabolizmanızı canlı tutmak için taze bir meyve veya kuruyemiş vakti.';
+                    targetMealKey = 'Ara';
+                  } else if (currentHour >= 18.5 && currentHour < 22) {
+                    mealLabel = 'Akşam Yemeği Vakti 🥗';
+                    mealAdvice = 'Şu an Akşam Yemeği Vakti! Hafif ve sindirimi kolay bir yemek tercih edin.';
+                    targetMealKey = 'Akşam';
+                  } else {
+                    mealLabel = 'Gece Dinlenme Vakti 🌙';
+                    mealAdvice = 'Gece Dinlenme Zamanı! Metabolizmanız için bol su tüketimine ağırlık verin.';
+                    targetMealKey = 'Gece';
+                  }
+
+                  const todayProgram = selectedDietPlan.weeklyProgram?.[0]?.program;
+                  const matchingMeal = todayProgram?.find(m => m.meal?.includes(targetMealKey));
+
+                  return (
+                    <div className="p-4 rounded-2xl bg-slate-950/70 border border-emerald-500/20 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 backdrop-blur-md">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-emerald-400 animate-pulse" />
+                          <span className="text-xs font-black text-emerald-400 uppercase tracking-wider">{mealLabel}</span>
+                        </div>
+                        <p className="text-xs text-slate-200 font-medium">{mealAdvice}</p>
+                      </div>
+
+                      {matchingMeal && (
+                        <div className="bg-emerald-500/10 border border-emerald-500/30 p-2.5 rounded-xl text-xs max-w-sm shrink-0">
+                          <span className="font-bold text-emerald-300 block text-[11px]">Tavsiye Edilen Menü:</span>
+                          <span className="text-slate-200 text-[11px] font-medium">{matchingMeal.foods.join(', ')}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             )}
 
@@ -2310,7 +2413,7 @@ const handleSendAiMessage = async () => {
         );
 
       case 'food-category': 
-        const allFoodResults = (foodQuery || selectedFoodCategory ? searchResults : foods);
+        const allFoodResults = filteredFoods;
         const displayedFoods = allFoodResults.slice(0, foodDisplayLimit);
 
         return (
@@ -2750,7 +2853,9 @@ const handleSendAiMessage = async () => {
 
                       <Dialog open={isDietDialogOpen && selectedDiet?.id === diet.id} onOpenChange={(open) => {
                         setIsDietDialogOpen(open);
-                        if (!open) setSelectedDiet(null);
+                        if (!open) {
+                          setTimeout(() => setSelectedDiet(null), 300);
+                        }
                       }}>
                         <DialogTrigger asChild>
                           <Button 
@@ -2762,31 +2867,31 @@ const handleSendAiMessage = async () => {
                         </DialogTrigger>
                         <DialogContent className={`sm:max-w-[700px] rounded-3xl ${darkMode ? 'bg-slate-900 border-slate-800 text-gray-50' : 'bg-white'}`}>
                           <DialogHeader>
-                            <DialogTitle className="text-2xl font-black text-slate-900 dark:text-white">{selectedDiet?.name}</DialogTitle>
+                            <DialogTitle className="text-2xl font-black text-slate-900 dark:text-white">{selectedDiet?.name || ''}</DialogTitle>
                             <DialogDescription className={subTextClass}>
-                              {selectedDiet?.description}
+                              {selectedDiet?.description || ''}
                             </DialogDescription>
                           </DialogHeader>
                           <div className="max-h-[70vh] overflow-y-auto pr-2 space-y-4 custom-scrollbar">
                             <div className="grid grid-cols-2 gap-3 p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-700">
                               <div>
                                 <span className="text-xs text-slate-400 block font-medium">Hedef</span>
-                                <span className="text-sm font-bold text-slate-800 dark:text-white">{selectedDiet?.target}</span>
+                                <span className="text-sm font-bold text-slate-800 dark:text-white">{selectedDiet?.target || '-'}</span>
                               </div>
                               <div>
                                 <span className="text-xs text-slate-400 block font-medium">Günlük Kalori</span>
-                                <span className="text-sm font-bold text-orange-500">{selectedDiet?.caloriesPerDay} kcal</span>
+                                <span className="text-sm font-bold text-orange-500">{selectedDiet?.caloriesPerDay || 0} kcal</span>
                               </div>
                             </div>
 
                             <h4 className="font-bold text-slate-900 dark:text-white pt-2">Haftalık Menü Takvimi:</h4>
-                            {selectedDiet?.weeklyProgram.map(dayProgram => (
+                            {(selectedDiet?.weeklyProgram || []).map(dayProgram => (
                               <div key={dayProgram.day} className={`p-4 rounded-2xl border border-slate-100 dark:border-slate-800 ${darkMode ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
                                 <h5 className="font-extrabold text-emerald-600 dark:text-emerald-400 mb-2 text-sm">{dayProgram.day}</h5>
                                 <ul className="space-y-2">
-                                  {dayProgram.program.map((meal, index) => (
+                                  {(dayProgram.program || []).map((meal, index) => (
                                     <li key={index} className="text-xs text-slate-700 dark:text-slate-300">
-                                      <span className="font-bold text-slate-900 dark:text-white">{meal.hour} - {meal.meal}:</span> {meal.foods.join(', ')}
+                                      <span className="font-bold text-slate-900 dark:text-white">{meal.hour} - {meal.meal}:</span> {(meal.foods || []).join(', ')}
                                     </li>
                                   ))}
                                 </ul>
@@ -2914,7 +3019,9 @@ const handleSendAiMessage = async () => {
                       <div className="pt-4 mt-2">
                         <Dialog open={isExerciseDialogOpen && selectedExercise?.id === exercise.id} onOpenChange={(open) => {
                           setIsExerciseDialogOpen(open);
-                          if (!open) setSelectedExercise(null);
+                          if (!open) {
+                            setTimeout(() => setSelectedExercise(null), 300);
+                          }
                         }}>
                           <DialogTrigger asChild>
                             <Button 

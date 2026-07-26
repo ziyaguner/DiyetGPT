@@ -116,6 +116,7 @@ export default function Register() {
         }
       }
       if (response.status === 201 || response.status === 200) {
+        localStorage.setItem('activeTab', 'personal-screen');
         toast.success('Kayıt başarıyla tamamlandı!');
         setRegistrationSuccess(true);
         setTimeout(() => {

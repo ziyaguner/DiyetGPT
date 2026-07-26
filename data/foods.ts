@@ -126,49 +126,49 @@ export const foods: Food[] = [
   { id: 88, name: 'Kaymaklı Yoğurt', category: 'Süt ve Süt Ürünleri', calories: 266, protein: 7.8, carbs: 6.1, fat: 23.4, fiber: 0.0, serving: '100g' },
   { id: 89, name: 'Şirden Mayalı Peynir', category: 'Süt ve Süt Ürünleri', calories: 225, protein: 17.8, carbs: 4.8, fat: 15.0, fiber: 0.0, serving: '100g' },
   { id: 90, name: 'Peynir Altı Suyu Tozu', category: 'Süt ve Süt Ürünleri', calories: 66, protein: 7.7, carbs: 7.7, fat: 0.5, fiber: 0.0, serving: '100g' },
-  { id: 91, name: 'Beyaz Ekmek', category: 'Tahıllar ve Baklagiller', calories: 267, protein: 9.4, carbs: 55.7, fat: 0.7, fiber: 6.4, serving: '100g' },
-  { id: 92, name: 'Tam Buğday Ekmeği', category: 'Tahıllar ve Baklagiller', calories: 305, protein: 9.1, carbs: 65.5, fat: 0.7, fiber: 13.9, serving: '100g' },
-  { id: 93, name: 'Pirinç (Pişmiş)', category: 'Tahıllar ve Baklagiller', calories: 350, protein: 18.7, carbs: 61.7, fat: 3.2, fiber: 8.8, serving: '100g' },
-  { id: 94, name: 'Bulgur (Pişmiş)', category: 'Tahıllar ve Baklagiller', calories: 233, protein: 11.0, carbs: 43.8, fat: 1.5, fiber: 11.4, serving: '100g' },
-  { id: 95, name: 'Makarna (Pişmiş)', category: 'Tahıllar ve Baklagiller', calories: 325, protein: 15.1, carbs: 49.3, fat: 7.5, fiber: 11.8, serving: '100g' },
-  { id: 96, name: 'Yulaf', category: 'Tahıllar ve Baklagiller', calories: 325, protein: 22.1, carbs: 44.7, fat: 6.4, fiber: 5.8, serving: '100g' },
-  { id: 97, name: 'Kırmızı Mercimek', category: 'Tahıllar ve Baklagiller', calories: 260, protein: 17.8, carbs: 44.4, fat: 1.3, fiber: 5.8, serving: '100g' },
-  { id: 98, name: 'Yeşil Mercimek', category: 'Tahıllar ve Baklagiller', calories: 341, protein: 15.9, carbs: 56.1, fat: 5.9, fiber: 5.9, serving: '100g' },
-  { id: 99, name: 'Beyaz Fasulye', category: 'Tahıllar ve Baklagiller', calories: 281, protein: 13.2, carbs: 46.9, fat: 4.5, fiber: 13.3, serving: '100g' },
-  { id: 100, name: 'Barbunya', category: 'Tahıllar ve Baklagiller', calories: 331, protein: 23.0, carbs: 56.4, fat: 1.5, fiber: 11.0, serving: '100g' },
-  { id: 101, name: 'Nohut', category: 'Tahıllar ve Baklagiller', calories: 308, protein: 13.8, carbs: 57.7, fat: 2.5, fiber: 13.1, serving: '100g' },
-  { id: 102, name: 'Kuru Fasulye', category: 'Tahıllar ve Baklagiller', calories: 229, protein: 7.3, carbs: 47.4, fat: 1.1, fiber: 11.4, serving: '100g' },
-  { id: 103, name: 'Kara Buğday', category: 'Tahıllar ve Baklagiller', calories: 365, protein: 6.8, carbs: 66.6, fat: 7.9, fiber: 4.2, serving: '100g' },
-  { id: 104, name: 'Kinoa', category: 'Tahıllar ve Baklagiller', calories: 314, protein: 13.7, carbs: 53.0, fat: 5.2, fiber: 6.6, serving: '100g' },
-  { id: 105, name: 'Mısır', category: 'Tahıllar ve Baklagiller', calories: 262, protein: 16.3, carbs: 42.1, fat: 3.2, fiber: 8.4, serving: '100g' },
-  { id: 106, name: 'Patlamış Mısır', category: 'Tahıllar ve Baklagiller', calories: 313, protein: 16.4, carbs: 55.3, fat: 2.9, fiber: 10.1, serving: '100g' },
-  { id: 107, name: 'Esmer Pirinç', category: 'Tahıllar ve Baklagiller', calories: 302, protein: 12.3, carbs: 47.9, fat: 6.8, fiber: 5.3, serving: '100g' },
-  { id: 108, name: 'İnce Bulgur', category: 'Tahıllar ve Baklagiller', calories: 294, protein: 20.2, carbs: 43.3, fat: 4.4, fiber: 4.7, serving: '100g' },
-  { id: 109, name: 'Kuskus', category: 'Tahıllar ve Baklagiller', calories: 332, protein: 16.1, carbs: 61.0, fat: 2.6, fiber: 6.0, serving: '100g' },
-  { id: 110, name: 'Basmati Pirinç', category: 'Tahıllar ve Baklagiller', calories: 376, protein: 13.9, carbs: 65.0, fat: 6.7, fiber: 8.2, serving: '100g' },
-  { id: 111, name: 'Jasmine Pirinç', category: 'Tahıllar ve Baklagiller', calories: 318, protein: 6.2, carbs: 56.0, fat: 7.7, fiber: 8.5, serving: '100g' },
-  { id: 112, name: 'Börek Yufkası', category: 'Tahıllar ve Baklagiller', calories: 317, protein: 14.4, carbs: 53.6, fat: 5.0, fiber: 9.3, serving: '100g' },
-  { id: 113, name: 'Lavaş', category: 'Tahıllar ve Baklagiller', calories: 258, protein: 11.8, carbs: 42.8, fat: 4.4, fiber: 3.5, serving: '100g' },
-  { id: 114, name: 'Bazlama', category: 'Tahıllar ve Baklagiller', calories: 318, protein: 11.7, carbs: 61.1, fat: 3.0, fiber: 9.3, serving: '100g' },
-  { id: 115, name: 'Simit', category: 'Tahıllar ve Baklagiller', calories: 281, protein: 12.3, carbs: 43.3, fat: 6.5, fiber: 12.8, serving: '100g' },
-  { id: 116, name: 'Börek', category: 'Tahıllar ve Baklagiller', calories: 285, protein: 16.3, carbs: 40.7, fat: 6.3, fiber: 3.5, serving: '100g' },
-  { id: 117, name: 'Mantı', category: 'Tahıllar ve Baklagiller', calories: 328, protein: 17.5, carbs: 59.1, fat: 2.4, fiber: 10.2, serving: '100g' },
-  { id: 118, name: 'Şehriye', category: 'Tahıllar ve Baklagiller', calories: 363, protein: 16.7, carbs: 64.3, fat: 4.3, fiber: 4.3, serving: '100g' },
-  { id: 119, name: 'Arpa', category: 'Tahıllar ve Baklagiller', calories: 260, protein: 19.2, carbs: 44.5, fat: 0.6, fiber: 3.1, serving: '100g' },
-  { id: 120, name: 'Kepekli Makarna', category: 'Tahıllar ve Baklagiller', calories: 302, protein: 14.6, carbs: 49.6, fat: 5.0, fiber: 13.1, serving: '100g' },
-  { id: 121, name: 'Çavdar Ekmeği', category: 'Tahıllar ve Baklagiller', calories: 402, protein: 22.9, carbs: 60.0, fat: 7.8, fiber: 4.3, serving: '100g' },
-  { id: 122, name: 'Pide', category: 'Tahıllar ve Baklagiller', calories: 348, protein: 15.5, carbs: 54.1, fat: 7.7, fiber: 10.0, serving: '100g' },
-  { id: 123, name: 'Lavaş (Tam Buğday)', category: 'Tahıllar ve Baklagiller', calories: 338, protein: 12.8, carbs: 66.7, fat: 2.2, fiber: 12.5, serving: '100g' },
-  { id: 124, name: 'Çiğ Köftelik Bulgur', category: 'Tahıllar ve Baklagiller', calories: 314, protein: 9.0, carbs: 66.9, fat: 1.2, fiber: 11.5, serving: '100g' },
-  { id: 125, name: 'Mısır Unu', category: 'Tahıllar ve Baklagiller', calories: 309, protein: 19.4, carbs: 50.5, fat: 3.3, fiber: 4.5, serving: '100g' },
-  { id: 126, name: 'Pirinç Unu', category: 'Tahıllar ve Baklagiller', calories: 234, protein: 12.9, carbs: 43.5, fat: 0.9, fiber: 10.7, serving: '100g' },
-  { id: 127, name: 'Galeta Unu', category: 'Tahıllar ve Baklagiller', calories: 279, protein: 21.7, carbs: 43.3, fat: 2.1, fiber: 12.2, serving: '100g' },
-  { id: 128, name: 'Yulaf Kepeği', category: 'Tahıllar ve Baklagiller', calories: 297, protein: 13.7, carbs: 48.6, fat: 5.3, fiber: 8.8, serving: '100g' },
-  { id: 129, name: 'Kepek', category: 'Tahıllar ve Baklagiller', calories: 337, protein: 22.8, carbs: 57.1, fat: 1.9, fiber: 7.7, serving: '100g' },
-  { id: 130, name: 'Dürümlük Yufka', category: 'Tahıllar ve Baklagiller', calories: 336, protein: 15.3, carbs: 59.0, fat: 4.3, fiber: 7.4, serving: '100g' },
-  { id: 131, name: 'Erişte', category: 'Tahıllar ve Baklagiller', calories: 411, protein: 23.3, carbs: 64.3, fat: 6.7, fiber: 5.2, serving: '100g' },
-  { id: 132, name: 'Dinkel Unu', category: 'Tahıllar ve Baklagiller', calories: 353, protein: 15.6, carbs: 61.7, fat: 4.9, fiber: 7.7, serving: '100g' },
-  { id: 133, name: 'Siyez Bulguru', category: 'Tahıllar ve Baklagiller', calories: 327, protein: 18.8, carbs: 60.9, fat: 0.9, fiber: 11.6, serving: '100g' },
+  { id: 91, name: 'Beyaz Ekmek', category: 'Tahıllar', calories: 267, protein: 9.4, carbs: 55.7, fat: 0.7, fiber: 6.4, serving: '100g' },
+  { id: 92, name: 'Tam Buğday Ekmeği', category: 'Tahıllar', calories: 305, protein: 9.1, carbs: 65.5, fat: 0.7, fiber: 13.9, serving: '100g' },
+  { id: 93, name: 'Pirinç (Pişmiş)', category: 'Tahıllar', calories: 350, protein: 18.7, carbs: 61.7, fat: 3.2, fiber: 8.8, serving: '100g' },
+  { id: 94, name: 'Bulgur (Pişmiş)', category: 'Tahıllar', calories: 233, protein: 11.0, carbs: 43.8, fat: 1.5, fiber: 11.4, serving: '100g' },
+  { id: 95, name: 'Makarna (Pişmiş)', category: 'Tahıllar', calories: 325, protein: 15.1, carbs: 49.3, fat: 7.5, fiber: 11.8, serving: '100g' },
+  { id: 96, name: 'Yulaf', category: 'Tahıllar', calories: 325, protein: 22.1, carbs: 44.7, fat: 6.4, fiber: 5.8, serving: '100g' },
+  { id: 97, name: 'Kırmızı Mercimek', category: 'Baklagiller', calories: 260, protein: 17.8, carbs: 44.4, fat: 1.3, fiber: 5.8, serving: '100g' },
+  { id: 98, name: 'Yeşil Mercimek', category: 'Baklagiller', calories: 341, protein: 15.9, carbs: 56.1, fat: 5.9, fiber: 5.9, serving: '100g' },
+  { id: 99, name: 'Beyaz Fasulye', category: 'Baklagiller', calories: 281, protein: 13.2, carbs: 46.9, fat: 4.5, fiber: 13.3, serving: '100g' },
+  { id: 100, name: 'Barbunya', category: 'Baklagiller', calories: 331, protein: 23.0, carbs: 56.4, fat: 1.5, fiber: 11.0, serving: '100g' },
+  { id: 101, name: 'Nohut', category: 'Baklagiller', calories: 308, protein: 13.8, carbs: 57.7, fat: 2.5, fiber: 13.1, serving: '100g' },
+  { id: 102, name: 'Kuru Fasulye', category: 'Baklagiller', calories: 229, protein: 7.3, carbs: 47.4, fat: 1.1, fiber: 11.4, serving: '100g' },
+  { id: 103, name: 'Kara Buğday', category: 'Tahıllar', calories: 365, protein: 6.8, carbs: 66.6, fat: 7.9, fiber: 4.2, serving: '100g' },
+  { id: 104, name: 'Kinoa', category: 'Tahıllar', calories: 314, protein: 13.7, carbs: 53.0, fat: 5.2, fiber: 6.6, serving: '100g' },
+  { id: 105, name: 'Mısır', category: 'Tahıllar', calories: 262, protein: 16.3, carbs: 42.1, fat: 3.2, fiber: 8.4, serving: '100g' },
+  { id: 106, name: 'Patlamış Mısır', category: 'Tahıllar', calories: 313, protein: 16.4, carbs: 55.3, fat: 2.9, fiber: 10.1, serving: '100g' },
+  { id: 107, name: 'Esmer Pirinç', category: 'Tahıllar', calories: 302, protein: 12.3, carbs: 47.9, fat: 6.8, fiber: 5.3, serving: '100g' },
+  { id: 108, name: 'İnce Bulgur', category: 'Tahıllar', calories: 294, protein: 20.2, carbs: 43.3, fat: 4.4, fiber: 4.7, serving: '100g' },
+  { id: 109, name: 'Kuskus', category: 'Tahıllar', calories: 332, protein: 16.1, carbs: 61.0, fat: 2.6, fiber: 6.0, serving: '100g' },
+  { id: 110, name: 'Basmati Pirinç', category: 'Tahıllar', calories: 376, protein: 13.9, carbs: 65.0, fat: 6.7, fiber: 8.2, serving: '100g' },
+  { id: 111, name: 'Jasmine Pirinç', category: 'Tahıllar', calories: 318, protein: 6.2, carbs: 56.0, fat: 7.7, fiber: 8.5, serving: '100g' },
+  { id: 112, name: 'Börek Yufkası', category: 'Tahıllar', calories: 317, protein: 14.4, carbs: 53.6, fat: 5.0, fiber: 9.3, serving: '100g' },
+  { id: 113, name: 'Lavaş', category: 'Tahıllar', calories: 258, protein: 11.8, carbs: 42.8, fat: 4.4, fiber: 3.5, serving: '100g' },
+  { id: 114, name: 'Bazlama', category: 'Tahıllar', calories: 318, protein: 11.7, carbs: 61.1, fat: 3.0, fiber: 9.3, serving: '100g' },
+  { id: 115, name: 'Simit', category: 'Tahıllar', calories: 281, protein: 12.3, carbs: 43.3, fat: 6.5, fiber: 12.8, serving: '100g' },
+  { id: 116, name: 'Börek', category: 'Tahıllar', calories: 285, protein: 16.3, carbs: 40.7, fat: 6.3, fiber: 3.5, serving: '100g' },
+  { id: 117, name: 'Mantı', category: 'Tahıllar', calories: 328, protein: 17.5, carbs: 59.1, fat: 2.4, fiber: 10.2, serving: '100g' },
+  { id: 118, name: 'Şehriye', category: 'Tahıllar', calories: 363, protein: 16.7, carbs: 64.3, fat: 4.3, fiber: 4.3, serving: '100g' },
+  { id: 119, name: 'Arpa', category: 'Tahıllar', calories: 260, protein: 19.2, carbs: 44.5, fat: 0.6, fiber: 3.1, serving: '100g' },
+  { id: 120, name: 'Kepekli Makarna', category: 'Tahıllar', calories: 302, protein: 14.6, carbs: 49.6, fat: 5.0, fiber: 13.1, serving: '100g' },
+  { id: 121, name: 'Çavdar Ekmeği', category: 'Tahıllar', calories: 402, protein: 22.9, carbs: 60.0, fat: 7.8, fiber: 4.3, serving: '100g' },
+  { id: 122, name: 'Pide', category: 'Tahıllar', calories: 348, protein: 15.5, carbs: 54.1, fat: 7.7, fiber: 10.0, serving: '100g' },
+  { id: 123, name: 'Lavaş (Tam Buğday)', category: 'Tahıllar', calories: 338, protein: 12.8, carbs: 66.7, fat: 2.2, fiber: 12.5, serving: '100g' },
+  { id: 124, name: 'Çiğ Köftelik Bulgur', category: 'Tahıllar', calories: 314, protein: 9.0, carbs: 66.9, fat: 1.2, fiber: 11.5, serving: '100g' },
+  { id: 125, name: 'Mısır Unu', category: 'Tahıllar', calories: 309, protein: 19.4, carbs: 50.5, fat: 3.3, fiber: 4.5, serving: '100g' },
+  { id: 126, name: 'Pirinç Unu', category: 'Tahıllar', calories: 234, protein: 12.9, carbs: 43.5, fat: 0.9, fiber: 10.7, serving: '100g' },
+  { id: 127, name: 'Galeta Unu', category: 'Tahıllar', calories: 279, protein: 21.7, carbs: 43.3, fat: 2.1, fiber: 12.2, serving: '100g' },
+  { id: 128, name: 'Yulaf Kepeği', category: 'Tahıllar', calories: 297, protein: 13.7, carbs: 48.6, fat: 5.3, fiber: 8.8, serving: '100g' },
+  { id: 129, name: 'Kepek', category: 'Tahıllar', calories: 337, protein: 22.8, carbs: 57.1, fat: 1.9, fiber: 7.7, serving: '100g' },
+  { id: 130, name: 'Dürümlük Yufka', category: 'Tahıllar', calories: 336, protein: 15.3, carbs: 59.0, fat: 4.3, fiber: 7.4, serving: '100g' },
+  { id: 131, name: 'Erişte', category: 'Tahıllar', calories: 411, protein: 23.3, carbs: 64.3, fat: 6.7, fiber: 5.2, serving: '100g' },
+  { id: 132, name: 'Dinkel Unu', category: 'Tahıllar', calories: 353, protein: 15.6, carbs: 61.7, fat: 4.9, fiber: 7.7, serving: '100g' },
+  { id: 133, name: 'Siyez Bulguru', category: 'Tahıllar', calories: 327, protein: 18.8, carbs: 60.9, fat: 0.9, fiber: 11.6, serving: '100g' },
   { id: 134, name: 'Domates', category: 'Sebzeler', calories: 34, protein: 1.6, carbs: 6.1, fat: 0.4, fiber: 3.2, serving: '100g' },
   { id: 135, name: 'Salatalık', category: 'Sebzeler', calories: 46, protein: 1.8, carbs: 7.9, fat: 0.8, fiber: 3.8, serving: '100g' },
   { id: 136, name: 'Yeşil Biber', category: 'Sebzeler', calories: 21, protein: 2.0, carbs: 2.2, fat: 0.5, fiber: 3.0, serving: '100g' },
@@ -467,14 +467,30 @@ export const foods: Food[] = [
 ];
 
 
-export const getFoodsByCategory = (category: string): Food[] => {
-  return foods.filter(food => food.category === category);
+export const normalizeTurkish = (str: string): string => {
+  if (!str) return '';
+  return str
+    .replace(/İ/g, 'i')
+    .replace(/I/g, 'ı')
+    .replace(/Ğ/g, 'ğ')
+    .replace(/Ü/g, 'ü')
+    .replace(/Ş/g, 'ş')
+    .replace(/Ö/g, 'ö')
+    .replace(/Ç/g, 'ç')
+    .toLocaleLowerCase('tr-TR')
+    .trim();
 };
 
-export const searchFoods = (query: string ): Food[] => {
-  const lowercaseQuery = query.toLowerCase();
+export const getFoodsByCategory = (category: string): Food[] => {
+  const normCategory = normalizeTurkish(category);
+  return foods.filter(food => normalizeTurkish(food.category) === normCategory);
+};
+
+export const searchFoods = (query: string): Food[] => {
+  if (!query || !query.trim()) return foods;
+  const q = normalizeTurkish(query);
   return foods.filter(food => 
-    food.name.toLowerCase().includes(lowercaseQuery) ||
-    food.category.toLowerCase().includes(lowercaseQuery)
+    normalizeTurkish(food.name).includes(q) ||
+    normalizeTurkish(food.category).includes(q)
   );
 };

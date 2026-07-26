@@ -53,6 +53,7 @@ export default function Login() {
       }
       const userData = response.data;
       localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('activeTab', 'personal-screen');
       
       toast.success("DiyetGPT'ye Hoş Geldiniz!");
       navigate('/dashboard');
