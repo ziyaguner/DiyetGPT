@@ -21,6 +21,7 @@ export default function Login() {
   const [isResetting, setIsResetting] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
   const [loginError, setLoginError] = useState('');
+  const [showErrorModal, setShowErrorModal] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -40,23 +41,31 @@ export default function Login() {
     setLoginError('');
 
     try {
-      const response = await axios.post('/login', { email, password }, { withCredentials: true });
+      let response;
+      try {
+        response = await axios.post('/login', { email, password }, { withCredentials: true });
+      } catch (err: any) {
+        if (err.response?.status === 404) {
+          response = await axios.post('/api/login', { email, password }, { withCredentials: true });
+        } else {
+          throw err;
+        }
+      }
       const userData = response.data;
       localStorage.setItem('user', JSON.stringify(userData));
       
       toast.success("DiyetGPT'ye Hoş Geldiniz!");
       navigate('/dashboard');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Giriş hatası:', error);
-      let errorMessage = 'Giriş başarısız oldu. Lütfen bilgilerinizi kontrol edin.';
+      let errorMessage = 'E-posta veya şifre hatalı. Lütfen bilgilerinizi kontrol edin.';
       if (axios.isAxiosError(error)) {
-        if (error.response?.status === 401) {
-          errorMessage = 'E-posta veya şifre hatalı.';
-        } else if (error.response?.data?.message) {
+        if (error.response?.data?.message) {
           errorMessage = error.response.data.message;
         }
       }
       setLoginError(errorMessage);
+      setShowErrorModal(true);
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -310,6 +319,37 @@ export default function Login() {
                 </form>
               )}
             </AnimatePresence>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Hatalı Giriş Uarısı Dialog Modal */}
+      {showErrorModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.85, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.85, y: 15 }}
+            className="bg-slate-900 border border-rose-500/40 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden p-6 text-white text-center space-y-4"
+          >
+            <div className="inline-flex items-center justify-center p-3.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-400">
+              <Lock className="h-8 w-8 animate-bounce" />
+            </div>
+            
+            <div className="space-y-1">
+              <h3 className="text-xl font-black text-rose-400">Giriş Başarısız</h3>
+              <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                {loginError || 'Girilen e-posta adresi veya şifre hatalı. Lütfen bilgilerinizi kontrol edip tekrar deneyin.'}
+              </p>
+            </div>
+
+            <Button 
+              type="button" 
+              onClick={() => setShowErrorModal(false)}
+              className="w-full bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white font-bold rounded-2xl py-3 shadow-lg shadow-rose-600/30 transition-all"
+            >
+              Tekrar Dene
+            </Button>
           </motion.div>
         </div>
       )}

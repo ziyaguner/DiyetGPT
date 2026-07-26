@@ -105,8 +105,17 @@ export default function Register() {
     };
 
     try {
-      const response = await axios.post('/register', payload);
-      if (response.status === 201) {
+      let response;
+      try {
+        response = await axios.post('/register', payload);
+      } catch (err: any) {
+        if (err.response?.status === 404) {
+          response = await axios.post('/api/register', payload);
+        } else {
+          throw err;
+        }
+      }
+      if (response.status === 201 || response.status === 200) {
         toast.success('Kayıt başarıyla tamamlandı!');
         setRegistrationSuccess(true);
         setTimeout(() => {
@@ -114,8 +123,8 @@ export default function Register() {
         }, 1800);
       }
     } catch (error: any) {
-      console.error("Hata oluştu:", error);
-      const errorMsg = error.response?.data?.message || 'Kayıt sırasında bir hata oluştu.';
+      console.error("Kayıt hatası:", error);
+      const errorMsg = error.response?.data?.message || 'Kayıt sırasında bir hata oluştu. Lütfen bilgilerinizi kontrol edin.';
       toast.error(errorMsg);
     } finally {
       setIsLoading(false);

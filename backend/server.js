@@ -215,12 +215,12 @@ app.post('/api/analyze-blood-test', limitChecker('BloodTest', 'BloodTestUsed'), 
 
 // --- API ROTLARI ---
 
-app.post('/register', async (req, res) => {
+app.post(['/register', '/api/register'], async (req, res) => {
     const { name, email, password, age, weight, height, gender, activityLevel } = req.body;
     console.log('Kayıt isteği alındı (MongoDB):', { name, email, age });
     
     if (!name || !email || !password || !age || !weight || !height || !gender || !activityLevel) {
-        return res.status(400).json({ message: 'Tüm alanlar gerekli.' });
+        return res.status(400).json({ message: 'Lütfen tüm kayıt alanlarını doldurun.' });
     }
     
     try {
@@ -342,7 +342,7 @@ const getAndResetUsage = async (ID) => {
 
 
 
-app.post('/login', async (req, res) => {
+app.post(['/login', '/api/login'], async (req, res) => {
     const { email, password } = req.body;
     console.log(`Giriş denemesi (MongoDB): ${email}`);
 
@@ -914,18 +914,17 @@ const startServer = async () => {
       console.log(`Sunucu http://localhost:${port} adresinde çalışıyor (Pure MongoDB 🚀)`);
     });
 
-    // React Router Catch-All (Tüm route'ları index.html'e yönlendir)
+    // React Router Catch-All (Tüm sayfa route'larını index.html'e yönlendir)
     app.get('*', (req, res) => {
-        if (req.path.startsWith('/api') || req.path === '/login' || req.path === '/register') {
-            return res.status(404).json({ message: 'Endpoint bulunamadı.' });
+        if (req.path.startsWith('/api/')) {
+            return res.status(404).json({ message: 'API Endpoint bulunamadı.' });
         }
         
         const indexPath = path.join(__dirname, '../frontend/dist/index.html');
         if (fs.existsSync(indexPath)) {
             res.sendFile(indexPath);
         } else {
-            // Eğer dist/index.html yoksa (örneğin dev modunda), API isteği olmayanlar için 404 dönebiliriz.
-            res.status(404).send('Frontend build (dist/index.html) bulunamadı. Lütfen "npm run build" çalıştırın veya dev sunucusunu kullanın.');
+            res.status(404).send('Frontend build (dist/index.html) bulunamadı. Lütfen "npm run build" çalıştırın.');
         }
     });
   } catch (error) {
