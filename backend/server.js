@@ -361,6 +361,7 @@ app.post(['/login', '/api/login'], async (req, res) => {
             req.session.ID = String(user._id);
             req.session.userEmail = user.email;
             
+            const userPackageState = await getAndResetUsage(String(user._id));
             const userData = {
                 id: String(user._id),
                 email: user.email,
@@ -372,9 +373,12 @@ app.post(['/login', '/api/login'], async (req, res) => {
                 gender: user.gender || undefined,
                 activityLevel: user.activityLevel || undefined,
                 subscriptionStatus: user.subscriptionStatus || 'free',
+                subscriptionEndDate: user.subscriptionEndDate || undefined,
+                packageId: user.packageId || 1,
                 dailyCalorieGoal: user.dailyCalorieGoal || 2000,
                 weightUnit: user.weightUnit || 'kg',
-                heightUnit: user.heightUnit || 'cm'
+                heightUnit: user.heightUnit || 'cm',
+                packageInfo: userPackageState
             };
             
             console.log('Giriş başarılı, session oluşturuldu (MongoDB).');
@@ -422,6 +426,9 @@ app.get('/api/user', async (req, res) => {
                 heightUnit: user.heightUnit || 'cm',
                 gender: user.gender,
                 activityLevel: user.activityLevel,
+                subscriptionStatus: user.subscriptionStatus || 'free',
+                subscriptionEndDate: user.subscriptionEndDate,
+                packageId: user.packageId || 1,
                 loggedIn: true,
                 packageInfo: userPackageState
             });

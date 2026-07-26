@@ -3464,6 +3464,101 @@ const handleSendAiMessage = async () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Aktif Abonelik Paket Bilgisi & Kullanım Hakları Kartı */}
+            {(() => {
+              const pkgName = user?.packageInfo?.PackageName || user?.subscriptionStatus || 'Free';
+              const isPremium = pkgName === 'Premium' || pkgName === 'VIP' || pkgName === 'PRO' || user?.packageId === 3 || user?.packageId === 2;
+
+              let remainingDaysText = 'Süresiz Plan';
+              if (user?.subscriptionEndDate) {
+                const endMs = new Date(user.subscriptionEndDate).getTime();
+                const nowMs = Date.now();
+                const days = Math.max(0, Math.ceil((endMs - nowMs) / (1000 * 60 * 60 * 24)));
+                remainingDaysText = `${days} Gün Kaldı ⏳`;
+              }
+
+              const limits = user?.packageInfo?.Limits || {
+                PhotoAnalysis: { used: 0, limit: 5 },
+                MealSuggestion: { used: 0, limit: 5 },
+                BloodTest: { used: 0, limit: 1 }
+              };
+
+              return (
+                <Card className={`p-6 shadow-xl rounded-3xl ${cardBgClass} border border-emerald-500/40 space-y-5`}>
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 rounded-2xl bg-gradient-to-r from-amber-500 to-emerald-500 text-white shadow-md">
+                        <Crown className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 font-black text-xs px-2.5 py-0.5">
+                            {isPremium ? '🟢 VIP Premium Üyelik' : '⚪ Standart Ücretsiz Plan'}
+                          </Badge>
+                          <span className="text-xs text-slate-400 font-bold">• {remainingDaysText}</span>
+                        </div>
+                        <h3 className={`text-xl font-black ${textClass} mt-0.5`}>
+                          {isPremium ? 'DiyetGPT VIP Premium Paketi' : 'Standart Ücretsiz Paket'}
+                        </h3>
+                      </div>
+                    </div>
+
+                    <Button 
+                      onClick={() => setActiveTab('packages')} 
+                      className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-black text-xs rounded-2xl px-5 py-2.5 shadow-md shadow-emerald-500/20"
+                    >
+                      <Zap className="h-4 w-4 mr-1.5" /> {isPremium ? 'Paketi Değiştir' : 'VIP Pakete Yükselt'}
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4">
+                    <span className="text-xs font-black uppercase tracking-wider text-slate-400 block">
+                      AYLIK KALAN AI & KULLANIM HAKLARINIZ
+                    </span>
+
+                    {/* Fotoğraf Analiz Hakları */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700 space-y-1.5">
+                      <div className="flex justify-between text-xs font-extrabold">
+                        <span className={textClass}>📸 AI Fotoğraf Kalori Analizi</span>
+                        <span className="text-emerald-500">
+                          {limits.PhotoAnalysis.limit === null ? 'Sınırsız ✨' : `${limits.PhotoAnalysis.used} / ${limits.PhotoAnalysis.limit} (${Math.max(0, limits.PhotoAnalysis.limit - limits.PhotoAnalysis.used)} Hak Kaldı)`}
+                        </span>
+                      </div>
+                      {limits.PhotoAnalysis.limit !== null && (
+                        <Progress value={Math.min(100, (limits.PhotoAnalysis.used / limits.PhotoAnalysis.limit) * 100)} className="h-2 rounded-full bg-slate-200 dark:bg-slate-700" />
+                      )}
+                    </div>
+
+                    {/* Kan Tahlili Hakları */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700 space-y-1.5">
+                      <div className="flex justify-between text-xs font-extrabold">
+                        <span className={textClass}>🩸 Kan Tahlili & Biyobelirteç Analizi</span>
+                        <span className="text-rose-500">
+                          {limits.BloodTest.limit === null ? 'Sınırsız ✨' : `${limits.BloodTest.used} / ${limits.BloodTest.limit} (${Math.max(0, limits.BloodTest.limit - limits.BloodTest.used)} Hak Kaldı)`}
+                        </span>
+                      </div>
+                      {limits.BloodTest.limit !== null && (
+                        <Progress value={Math.min(100, (limits.BloodTest.used / limits.BloodTest.limit) * 100)} className="h-2 rounded-full bg-slate-200 dark:bg-slate-700" />
+                      )}
+                    </div>
+
+                    {/* Şef & Öğün Önerisi Hakları */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700 space-y-1.5">
+                      <div className="flex justify-between text-xs font-extrabold">
+                        <span className={textClass}>🍳 AI Şef & Tarif Öneri Sihirbazı</span>
+                        <span className="text-amber-500">
+                          {limits.MealSuggestion.limit === null ? 'Sınırsız ✨' : `${limits.MealSuggestion.used} / ${limits.MealSuggestion.limit} (${Math.max(0, limits.MealSuggestion.limit - limits.MealSuggestion.used)} Hak Kaldı)`}
+                        </span>
+                      </div>
+                      {limits.MealSuggestion.limit !== null && (
+                        <Progress value={Math.min(100, (limits.MealSuggestion.used / limits.MealSuggestion.limit) * 100)} className="h-2 rounded-full bg-slate-200 dark:bg-slate-700" />
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              );
+            })()}
           </motion.div>
         );
 
@@ -3839,7 +3934,80 @@ const handleSendAiMessage = async () => {
                   </div>
                 </div>
 
-                {/* 3. Veri ve Önbellek Yönetimi */}
+                {/* 3. Aktif Abonelik Paket Bilgisi & Kullanım Hakları */}
+                <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                  <div className="flex justify-between items-center">
+                    <h3 className={`text-lg font-black ${textClass} flex items-center gap-2`}>
+                      <Crown className="h-5 w-5 text-amber-500" /> Aktif Abonelik & Kullanım Hakları
+                    </h3>
+                    <Button 
+                      onClick={() => setActiveTab('packages')}
+                      size="sm"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl px-4 py-1.5"
+                    >
+                      <Zap className="h-3.5 w-3.5 mr-1" /> Paketi Yükselt
+                    </Button>
+                  </div>
+
+                  {(() => {
+                    const pkgName = user?.packageInfo?.PackageName || user?.subscriptionStatus || 'Free';
+                    const isPremium = pkgName === 'Premium' || pkgName === 'VIP' || pkgName === 'PRO' || user?.packageId === 3 || user?.packageId === 2;
+
+                    let daysRemainingStr = 'Süresiz';
+                    if (user?.subscriptionEndDate) {
+                      const endMs = new Date(user.subscriptionEndDate).getTime();
+                      const days = Math.max(0, Math.ceil((endMs - Date.now()) / (1000 * 60 * 60 * 24)));
+                      daysRemainingStr = `${days} Gün Kaldı`;
+                    }
+
+                    const limits = user?.packageInfo?.Limits || {
+                      PhotoAnalysis: { used: 0, limit: 5 },
+                      MealSuggestion: { used: 0, limit: 5 },
+                      BloodTest: { used: 0, limit: 1 }
+                    };
+
+                    return (
+                      <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700 space-y-4">
+                        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
+                          <div>
+                            <span className="text-xs font-bold text-slate-400 block uppercase">Mevcut Paketeniz</span>
+                            <span className={`text-base font-black ${textClass}`}>
+                              {isPremium ? '🌟 VIP Premium Paketi' : '⚪ Standart Ücretsiz Paket'}
+                            </span>
+                          </div>
+                          <Badge className={isPremium ? "bg-emerald-500 text-white font-extrabold text-xs px-3 py-1" : "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-extrabold text-xs px-3 py-1"}>
+                            {daysRemainingStr}
+                          </Badge>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                            <span className="text-[11px] text-slate-400 font-extrabold block mb-1">📸 Fotoğraf Analiz Hakkı</span>
+                            <span className="text-sm font-black text-emerald-500 block">
+                              {limits.PhotoAnalysis.limit === null ? 'Sınırsız ✨' : `${Math.max(0, limits.PhotoAnalysis.limit - limits.PhotoAnalysis.used)} / ${limits.PhotoAnalysis.limit} Hak`}
+                            </span>
+                          </div>
+
+                          <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                            <span className="text-[11px] text-slate-400 font-extrabold block mb-1">🩸 Kan Tahlili Analiz Hakkı</span>
+                            <span className="text-sm font-black text-rose-500 block">
+                              {limits.BloodTest.limit === null ? 'Sınırsız ✨' : `${Math.max(0, limits.BloodTest.limit - limits.BloodTest.used)} / ${limits.BloodTest.limit} Hak`}
+                            </span>
+                          </div>
+
+                          <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                            <span className="text-[11px] text-slate-400 font-extrabold block mb-1">🍳 AI Tarif Öneri Hakkı</span>
+                            <span className="text-sm font-black text-amber-500 block">
+                              {limits.MealSuggestion.limit === null ? 'Sınırsız ✨' : `${Math.max(0, limits.MealSuggestion.limit - limits.MealSuggestion.used)} / ${limits.MealSuggestion.limit} Hak`}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* 4. Veri ve Önbellek Yönetimi */}
                 <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
                   <h3 className={`text-lg font-black ${textClass} flex items-center gap-2`}>
                     <Database className="h-5 w-5 text-purple-500" /> Veri & Önbellek Yönetimi
