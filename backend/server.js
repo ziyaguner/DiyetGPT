@@ -491,6 +491,10 @@ app.post('/api/payment/checkout-form', async (req, res) => {
             return res.status(404).json({ message: 'Kullanıcı bulunamadı.' });
         }
 
+        const protocol = req.protocol || 'http';
+        const host = req.get('host');
+        const callbackUrl = `${protocol}://${host}/api/payment/callback`;
+
         const request = {
             locale: iyzipay.LOCALE.TR,
             conversationId: generateId(),
@@ -499,7 +503,7 @@ app.post('/api/payment/checkout-form', async (req, res) => {
             currency: iyzipay.CURRENCY.TRY,
             basketId: `B-${packageId}-${user._id}`,
             paymentGroup: iyzipay.PAYMENT_GROUP.SUBSCRIPTION,
-            callbackUrl: 'http://localhost:5000/api/payment/callback',
+            callbackUrl: callbackUrl,
             enabledInstallments: [2, 3, 6, 9],
             buyer: {
                 id: String(user._id),
@@ -607,14 +611,17 @@ app.post('/api/payment/callback', async (req, res) => {
                     subscriptionEndDate: subscriptionEnds
                 });
                 
-                return res.redirect('http://localhost:5173/payment-success');
+                const clientHost = req.get('referer') ? new URL(req.get('referer')).origin : `${req.protocol}://${req.get('host')}`;
+                return res.redirect(`${clientHost}/payment-success`);
             } catch (dbError) {
                 console.error('Callback DB Error (MongoDB):', dbError);
-                return res.redirect('http://localhost:5173/payment-fail');
+                const clientHost = req.get('referer') ? new URL(req.get('referer')).origin : `${req.protocol}://${req.get('host')}`;
+                return res.redirect(`${clientHost}/payment-fail`);
             }
         } else {
             console.error('Payment not successful:', result.errorMessage);
-            return res.redirect('http://localhost:5173/payment-fail');
+            const clientHost = req.get('referer') ? new URL(req.get('referer')).origin : `${req.protocol}://${req.get('host')}`;
+            return res.redirect(`${clientHost}/payment-fail`);
         }
     });
 });
